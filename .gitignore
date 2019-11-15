@@ -5,6 +5,7 @@
 # Session Data files
 .RData
 
+
 # Example code in package build process
 *-Ex.R
 
@@ -36,3 +37,8 @@ vignettes/*.pdf
 rsconnect/
 .Rproj.user
 .Icon
+
+
+# Stuff from Rodney
+.DS_Store
+*.html

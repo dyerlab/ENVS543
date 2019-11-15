@@ -1,0 +1,42 @@
+---
+title: "Markdown"
+author: "Environmental Data Literacy"
+date: "ENVS 543"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown Syntax
+
+It is all text
+
+
+
+## Headings
+
+
+```{r}
+# First Level Heading
+## Second Level Heading
+### Third Level Heading
+#### Fourth Level Heading
+```
+
+
+## Typefaces {.build}
+
+Raw text is raw text.  
+
+To *italicize* text, put an asterisk around it.
+```
+To *italicize* text, put an asterisk around it
+```
+
+And to **embolden** text, use two asterisks.
+```
+And to **embolden**, use two asterisks.
+```
+
