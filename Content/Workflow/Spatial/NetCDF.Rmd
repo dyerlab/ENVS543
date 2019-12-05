@@ -1,0 +1,48 @@
+---
+title: "NetCDF"
+author: 'Spatial Workflows'
+date: 'ENVS543: Environmental Data Literacy'
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    hightlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options("kableExtra.html.bsTable" = T)
+library(knitr)
+library(kableExtra)
+library(tidyverse)
+```
+
+## The Data | NASA Data Resources
+
+The data used herein are derived from the NASA open data sets.
+
+[Webpage](./media/nasa.png)
+
+
+
+##  Environmenal Data Within NetCDF files
+
+Each file is a 2&deg; grid, with pixels of size 1km *x* 1km.
+
+```{r}
+raw <- c("Parameter", "Abbr", "Units", "Description", "Day length", "dayl", "s/day", "Duration of the daylight period in seconds per day. This calculation is based on the period of the day during which the sun is above a hypothetical flat horizon.", "Precipitation", "prcp", "mm/day", "Daily total precipitation in millimeters per day, sum of all forms converted to water-equivalent. Precipitation occurrence on any given day may be ascertained.", "Shortwave radiation", "srad", "W/m2", "Incident shortwave radiation flux density in watts per square meter, taken as an average over the daylight period of the day. NOTE: Daily total radiation (MJ/m2/day) can be calculated as follows: ((srad (W/m2) * dayl (s/day)) / l,000,000)", "Snow water equivalent", "swe", "kg/m2", "Snow water equivalent in kilograms per square meter. The amount of water contained within the snowpack.",
+"Maximum air temperature", "tmax", "degrees C", "Daily maximum 2-meter air temperature in degrees Celsius.", "Minimum air temperature", "tmin", "degrees C", "Daily minimum 2-meter air temperature in degrees Celsius.", "Water vapor pressure", "vp", "Pa", "Water vapor pressure in pascals. Daily average partial pressure of water vapor.")
+mat <- matrix( raw, ncol=4, byrow=TRUE)
+df <- data.frame( mat[2:8,])
+names(df) <- mat[1,]
+df %>%
+  kable() %>%
+  kable_styling( bootstrap_options = c( "striped", 
+                                        "hover", 
+                                        "condensed", 
+                                        "responsive"),
+                 font_size = 14) %>%
+  column_spec( column = 1, width="190px") %>%
+  column_spec( column = 3, width="90px")
+```
+
