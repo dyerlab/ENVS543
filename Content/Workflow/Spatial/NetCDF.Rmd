@@ -7,6 +7,8 @@ output:
     widescreen: true
     smaller: true
     hightlight: tango
+    logo: "../../logo.png"
+    css: "../../style.css"
 ---
 
 ```{r setup, include=FALSE}
