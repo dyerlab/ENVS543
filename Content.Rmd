@@ -29,10 +29,10 @@ schedule$Topics <- c(
   "Databases",
   "Programming (if,for,apply)",
   "",
-  "Ordination",
-  "Linear Models",
-  "Analysis of Variance",
-  "Model Comparison" 
+  "",
+  "",
+  "",
+  "" 
 )
 
 schedule %>%

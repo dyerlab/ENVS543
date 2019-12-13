@@ -12,8 +12,10 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+theme_set( theme_minimal() )
+
 ```
 
 ## Models {.build}
@@ -32,9 +34,39 @@ Often shortened to the quote  `All models are wrong, but some are useful.`
 
 ## Example Data
 
+```{r echo=FALSE}
+load("../../data/araptus.rda")
+```
+
 ```{r}
-load("data/araptus.rda")
-system("ls")
-Sys.readlink("./data")
+araptus %>% 
+  mutate( SexRatio = Females/Males ) -> araptus 
+summary( araptus )
+```
+
+## Habitat Suitability
+
+```{r}
+araptus %>%
+  ggplot( aes(Suitability, SexRatio)) + geom_point() + stat_smooth(method="lm") + 
+  xlim(c(0,1)) + xlab("Habitat Suitability") + ylab("Observed Sex Ratio")  
+```
+
+## Fitting a Model
+
+```{r}
+models <- data.frame( intercept = runif(100, 0, 2),
+                      slope = runif(100, -3, 3 ) )
+```
+
+
+
+## Potential Models
+
+```{r}
+ggplot(araptus, aes(Suitability, SexRatio)) + 
+  geom_abline( aes(intercept=intercept, slope=slope), data=models, alpha=0.25 ) +
+  geom_point() + xlim(c(0,1)) + xlab("Habitat Suitability") + ylab("Observed Sex Ratio") 
+
 ```
 
