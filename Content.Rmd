@@ -4,9 +4,66 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
+library(knitr)
+library(tidyverse)
+library(kableExtra)
 ```
 
 
 
+```{r}
+schedule <- data.frame( Week = 1:16 )
+schedule$Dates <- (schedule$Week - 1)*7 + parse_date("2020-01-14")
+
+schedule$Topics <- c(
+  "R & RStudio",
+  "Data Graphics",
+  "RMarkdown",
+  "Points, Lines, & Polygons",
+  "Raster Data",
+  "Spatial Graphics",
+  "Tidyverse",
+  "Interactive Graphics",
+  "Spring Break",
+  "Databases",
+  "",
+  "",
+  "Ordination",
+  "Linear Models",
+  "Analysis of Variance",
+  "Model Comparison" 
+)
+
+schedule %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+
+
+
+
+
+
+-----|-------------|-------------------
+Week | Date
+-----|-------------|-------------------
+1    | 14 January  |
+2    | 21 January  |
+3    | 28 January  |
+4    | 4 February  |
+5    | 11 February |
+6    | 18 February |
+7    | 25 February |
+8    | 3 March     |
+9    | 10 March    |
+10   | 17 March    |
+11   | 24 March    |
+12   | 31 March    |
+13   | 7 April     |
+14   | 14 April    |
+15   | 21 April    |
+16   | 28 April    |
 
