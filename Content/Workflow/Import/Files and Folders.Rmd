@@ -1,0 +1,20 @@
+---
+title: "Files & Folders"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Traversing a File Heirarchy
+
+
+```{r}
+base <- system.file(package="ggplot2")
+base
+
+```
+

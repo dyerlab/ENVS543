@@ -1,0 +1,134 @@
+---
+title: "Points"
+author: 'Spatial Workflows'
+date: 'ENVS543: Environmental Data Literacy'
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    hightlight: tango
+    logo: "../../logo.png"
+    css: "../../style.css"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options("kableExtra.html.bsTable" = T)
+```
+
+## Impetus
+
+The location (physical, temporal, ecological, etc.) of an observation can is represented as a coordiante consisting of one or more values specifying the localization within a larger space.  Coordinates repreenting a physical location are represented by datum embedded within a larger
+
+
+## Raw Data
+
+We often start with data in raw format.  For this example, we will be using the *Araptus attenuata* Sonoran desert bark beetle data set from the `scape` library.  It is saved as a R Data File in the spatial data folder.  
+
+Here is what it looks like.
+
+```{r}
+load("data/araptus.rda")
+summary(araptus)
+```
+
+
+## Geometric Objects
+
+In addition to normal floating-point numbers being able to represent coordinate data such as latitude and longitude, we can also specify the data as objects recognizable for spatial databases, GIS, opensource libraries, GeoJSON, etc.  These are [ISO standards](http://www.opengeospatial.org/standards/sfa) and if we put our data into these formats, we gain the ability to use a much wider array of tools.
+
+## The `sf` Library
+
+For our purposes, we will use the implentation in the `sf` (Simple Features) library.
+
+```{r}
+library(sf)
+```
+
+Most of the methods in the library are prefixed with `st_` as a nod to the routine names that are used in geospatial databases (so by learning `sf` you are getting a leg up on how to use spatial database calls as well).
+
+To make a point we can construct it as a *Well-Known Text* object (WKT) as:
+
+```{r}
+const <- st_point( c( -111.7, 26.14) ) 
+st_as_text(const)
+```
+
+## WKB
+
+as a *Well-Known Binary* (WBK) as:
+
+```{r}
+st_as_binary(const)
+```
+
+## To `data.frame`
+
+We can convert the `data.frame` above to one that contains these GEOMETRY objects.
+
+```{r}
+araptus_sf <- st_as_sf(araptus,coords = c("Longitude","Latitude"))
+araptus_sf
+```
+
+## CRS for these Data
+
+However, notice there is no Coordinate Reference System (CRS) associated with these data.   
+
+```{r}
+st_crs(araptus_sf)
+```
+
+## Coordinates
+
+The 'coordinates' we specified are just points, which we happened to label as "Latitude" and "Longitude" but we could have called them "X" and "Y" and unless you specify the CRS, R will pretend like it has no idea what system you are using.  If we want to make them represent real coordiantes (as in Latitude and Longitude we yanked off our GPS unit or grabbed from Google Earth), we need to specify the CRS directly.  See the page on [projections](projections.html) for more information.
+
+## EPSG Codes
+
+An EPSG code (see [EPSG.io](https://epsg.io) for more information) is a shorthand notation for a coordinate reference system.  There are tons of different projects available and you can make up your own if you like.  For this example, I'll use one of the most common ones we will run into, `epsg:3857`.
+
+```{r}
+st_crs(araptus_sf) <- 3857
+araptus_sf
+```
+
+## Google Maps EPSG 3857
+The `epgs:3857` is used by Google Maps, ESRI, OpenStreet Maps, Bing, and other providers and is equivallent to (for those who care) to the following WKT definition:
+
+```
+ PROJCS["WGS 84 / Pseudo-Mercator",
+    GEOGCS["WGS 84",
+        DATUM["WGS_1984",
+            SPHEROID["WGS 84",6378137,298.257223563,
+                AUTHORITY["EPSG","7030"]],
+            AUTHORITY["EPSG","6326"]],
+        PRIMEM["Greenwich",0,
+            AUTHORITY["EPSG","8901"]],
+        UNIT["degree",0.0174532925199433,
+            AUTHORITY["EPSG","9122"]],
+        AUTHORITY["EPSG","4326"]],
+    PROJECTION["Mercator_1SP"],
+    PARAMETER["central_meridian",0],
+    PARAMETER["scale_factor",1],
+    PARAMETER["false_easting",0],
+    PARAMETER["false_northing",0],
+    UNIT["metre",1,
+        AUTHORITY["EPSG","9001"]],
+    AXIS["X",EAST],
+    AXIS["Y",NORTH],
+    EXTENSION["PROJ4","+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 
+      +units=m +nadgrids=@null +wktext  +no_defs"],
+    AUTHORITY["EPSG","3857"]]
+```
+
+
+
+## Bounding Boxes
+
+A bounding box is the minimal set of coordinates that create a square box (in Longitude and Latitude) that encompass all the points.  Here is the box for the sites we collected.
+
+```{r}
+st_bbox( araptus_sf )
+```
+
+This is often useful in grabbing maps as we need to know the `extent` of the data.

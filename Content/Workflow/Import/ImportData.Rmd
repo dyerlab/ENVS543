@@ -1,0 +1,121 @@
+---
+title: "Getting Data Into R"
+author: 'Import Workflows'
+date: 'ENVS543: Environmental Data Literacy'
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    hightlight: tango
+    logo: "../../logo.png"
+    css: "../../style.css"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warking=FALSE, error = TRUE, message = FALSE)
+options("kableExtra.html.bsTable" = T)
+```
+
+## Impetus
+
+One of the first things we do each time we use R is to import or load data into the `Environment`.  These data may be:
+
+ - Input directly in R  
+ - Loaded from the local filesystem  
+ - Available online via a URL/URI  
+ - Within a database  
+ 
+
+
+# Direct Input of Data
+
+## Direct Input - From Vectors
+
+You can easily input data into R within your scripts or on the command line.
+
+```{r}
+x <- c(1,24,4,65,3,2,14)
+y <- rnorm(7)
+df <- data.frame( X = x, 
+                  Y = y )
+df
+```
+
+
+## Direct Input - At Once
+
+```{r}
+df <- data.frame( X = c(1,24,4,65,3,2,14),
+                  Y = rnorm(7) )
+df
+```
+
+
+## Tidyverse
+
+The `tidyverse` library has a ton of extentions to `base R` that make data wrangling much more fluid and efficient.  The sooner you start using this constellation of packages, the quicker you will begin emjoying your life... 
+
+```{r}
+library(tidyverse)
+```
+
+
+## Parsing Vectors
+
+The vector is the base container for all data types in `R`.  The `readr` library (within `tidyverse`) has several `parse_*` functions that can assist in importing data types.
+
+### Converting String to Numeric
+```{r}
+parse_integer( c("2","5",NA,"52"))
+parse_integer( c("2","5",".","52"), na = ".")
+```
+
+
+## Parsing Errors {.build}
+
+If the `parse_*` function runs into a problem coercing an entry into a specified data type, it will tell you.
+
+```{r}
+dr_d <- parse_integer( c("23","42","Bob"))
+```
+
+And give you some additional feedback if you ask it what problems it had.
+
+```{r}
+problems( dr_d )
+```
+
+
+
+## Tibbles
+
+A `tibble` is just like a `data.frame` object and can often be used in the same way.  You can use the `read_csv` function to load in a single string that has all the data contained within it.  The `read_csv` will attempt to guess the best kind of data to input into the structure.
+
+```{r}
+df <- read_csv( "Name, Value, Passed
+A, 63.4, TRUE
+B, 54.2, FALSE
+C, 92.4, TRUE")
+df
+```
+
+
+
+
+# Data On Your Computer
+
+
+
+
+# Data Online
+
+
+
+# Data Within Databases
+
+
+
+
+
+
+
