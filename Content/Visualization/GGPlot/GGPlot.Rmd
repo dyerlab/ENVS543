@@ -1,0 +1,39 @@
+---
+title: "GGPlot"
+author: 'Visualization Workflows'
+date: 'ENVS543: Environmental Data Literacy'
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    hightlight: tango
+    logo: "../../logo.png"
+    css: "../../style.css"
+---
+
+```{r setup, include=FALSE}
+source("../../../options.R")
+```
+
+## Simple Model
+
+```{r echo=FALSE}
+load("../../data/araptus.rda")
+araptus %>%
+  mutate( SexRatio = Females / Males  ) -> araptus
+
+araptus %>%
+  ggplot( aes(Suitability, SexRatio)) + geom_point() + 
+  xlab("Habitat Suitability") + ylab("F/M Sex Ratio")
+```
+
+```{r}
+
+model.1 <- lm( SexRatio ~ Suitability, data=araptus)
+
+grid <- araptus %>% 
+  data_grid(SexRatio) %>%
+  add_predictors( model.1 )
+
+```
+

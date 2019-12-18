@@ -12,19 +12,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message = FALSE)
-library(tidyverse)
-
-mytheme <- theme_classic() + 
-  theme(
-    panel.background = element_rect(fill = "transparent", colour = NA),
-    plot.background = element_rect(fill = "transparent", colour = NA),
-    legend.background = element_rect(fill = "transparent", colour = NA),
-    legend.box.background = element_rect(fill = "transparent", colour = NA)
-  )
-
-theme_set( mytheme )
-
+source("../../../options.R")
 ```
 
 ## Models {.build}
@@ -57,16 +45,18 @@ summary( araptus )
 
 ```{r}
 araptus %>%
-  ggplot( aes(Suitability, SexRatio)) + geom_point() + stat_smooth(method="lm") + 
-  xlim(c(0,1)) + xlab("Habitat Suitability") + ylab("Observed Sex Ratio")  + mytheme
-
+  ggplot( aes(Suitability, SexRatio)) + geom_point() + 
+  stat_smooth(method="lm", se=FALSE, col="red", size=0.5) + 
+  xlim(c(0,1)) + xlab("Habitat Suitability") + ylab("Observed Sex Ratio")  
 ```
 
 ## Fitting a Model
 
+We have an infinite number of models that could be fit to these data.  Here are some random examples.
 ```{r}
-models <- data.frame( intercept = runif(100, 0, 2),
-                      slope = runif(100, -3, 3 ) )
+models <- data.frame( intercept = runif(500, -3, 3),
+                      slope = runif(500, -3, 3 ) )
+head( models )
 ```
 
 
@@ -76,31 +66,78 @@ models <- data.frame( intercept = runif(100, 0, 2),
 ```{r}
 ggplot(araptus, aes(Suitability, SexRatio)) + 
   geom_abline( aes(intercept=intercept, slope=slope), data=models, alpha=0.25 ) +
-  geom_point() + xlim(c(0,1)) + xlab("Habitat Suitability") + ylab("Observed Sex Ratio") 
+  geom_point() + xlim(c(0,1)) + xlab("Habitat Suitability") + ylab("Observed Sex Ratio")
+```
+
+
+## Least Square Distances
+
+One way to figure out which of these models is `preferred` is to find the line which minimizes the distance from all the points to the predicted line.  
+```{r echo=FALSE}
+araptus %>%
+  mutate( SexRatio1 = araptus$Suitability*0.4 + 0.75) %>%
+  ggplot( aes(Suitability,SexRatio) ) + 
+  geom_point() + xlim(c(0,1)) + 
+  geom_abline( intercept = 0.75, slope = 0.4, alpha=0.25 ) +
+  geom_linerange( aes(ymin=SexRatio,ymax=SexRatio1), color="blue" ) +
+  xlab("Habitat Suitability") + ylab("Observed Sex Ratio")
+```
+
+## Function To Find Model Least Squares
+
+Let's take a circuituous route there and work through some functions.   
+```{r}
+pred <- function( df, intercept, slope ) {
+  return( intercept + slope * df[,1] )
+}
+
+araptus %>%
+  select( Suitability, SexRatio ) -> df
+
+Yhat <- pred(df, models$intercept[1], models$slope[1] )
+Yhat
 
 ```
 
 
-
-
-
-## Air Quality
+## Function To Find Model Least Squares {.build}
 
 ```{r}
-data("airquality")
-
-p <- 
-    ggplot(airquality, aes(Solar.R, Temp)) +
-    geom_point() +
-    geom_smooth() +
-    # set transparency
-    theme(
-        panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        panel.background = element_rect(fill = "transparent",colour = NA),
-        plot.background = element_rect(fill = "transparent",colour = NA)
-        )
-
-p
+squareDist <- function( coefs, X, Y ) {
+  Yhat <- coefs[1] + coefs[2]* X
+  d <- (Y - Yhat)^2
+  return( sum( d ) )
+}
 ```
+
+```{r}
+models$SumOfDistances <- apply( models, 
+                      1, 
+                      function(coefs, df) {
+                        return( squareDist(coefs, df$Suitability, df$SexRatio) )
+                        }, 
+                      df=df)
+```
+
+## Evaluations of Models
+
+```{r}
+models %>%
+  ggplot( aes(intercept, slope, alpha = 1.0/SumOfDistances)) + 
+  geom_point() + xlab("Model Intercept") + ylab("Model Slope") + 
+  theme( legend.position = "none")
+```
+
+## A Mesh View
+
+```{r echo=FALSE}
+library(plotly)
+
+plot_ly( x = ~ models$slope, 
+         y = ~ models$intercept, 
+         z = ~ models$SumOfDistances, type="mesh3d",
+         opacity = 0.8
+         )
+```
+
 

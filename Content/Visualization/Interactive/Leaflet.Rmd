@@ -1,0 +1,153 @@
+---
+title: "Leaflet Maps"
+author: 'Visualization Workflows'
+date: 'ENVS543: Environmental Data Literacy'
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    hightlight: tango
+    logo: "../../logo.png"
+    css: "../../style.css"
+---
+
+```{r setup, include=FALSE}
+source("../../../options.R")
+```
+
+
+
+## Leaflet
+
+A leaflet map has several components, just like a `ggplot` object, which are layered ontop of eachother. 
+
+ - Javascript library
+ - Integrated into R 
+ - Interactive mapping on HTML
+
+
+```{r}
+library(leaflet)
+library(magrittr)
+```
+
+
+# Basic Mapping
+
+
+## Basic Plotting
+
+```{r}
+leaflet() %>% addTiles()
+```
+
+
+
+## Alternative Tile Providers: ESRI
+
+
+```{r}
+leaflet() %>% 
+  addProviderTiles(provider="Esri.WorldStreetMap") %>%
+  addMarkers(lng=-77.454459, lat=37.544700)
+```
+
+
+## Tile Providers: Open Maps
+
+```{r}
+leaflet() %>% 
+  addProviderTiles(provider="OpenTopoMap") %>%
+  addMarkers(lng=c(-77.45,-81.63), lat=c(37.54,38.34) )
+```
+
+### Artistic Maps
+
+```{r}
+leaflet() %>% 
+  addProviderTiles(provider="Stamen.Watercolor") %>%
+  addMarkers(lng=c(-77.45,-81.63), lat=c(37.54,38.34) )
+```
+
+## Markers
+
+```{r echo=FALSE}
+df <- data.frame( University = c("Seatle Central Community College",
+                             "Western Washington University",
+                             "University of Missouri - Saint Louis",
+                             "Iowa State University",
+                             "Virginia Commonwealth University"),
+                  State = c("Washington",
+                            "Washington",
+                            "Missouri", 
+                            "Iowa", 
+                            "Virginia"),
+                  Reason = c("AA Degree",
+                             "BS Degree in Botany","MS/PhD in Biology",
+                             "PostDoctoral Researcher",
+                             "Professor (e.g., Get a Job!)"),
+                  Latitude =  c(  47.612,  48.734, 38.708, 42.025, 37.544),
+                  Longitude = c(-122.323,-122.488,-90.307,-93.646,-77.453)
+                  )
+df %>% 
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+
+
+## Dialog Boxes
+
+```{r}
+popup = paste( "<strong>", df$University,"</strong>",
+                 "</br>Reason for Attending: <i>", df$Reason, "</i>", sep="")
+popup
+```
+
+
+## Integrating into Markers
+
+```{r}
+df %>% leaflet() %>% addTiles() %>% addMarkers( popup = popup)
+```
+
+
+
+---
+
+From [Iowa State University Envrionment Mesonet](https://mesonet.agron.iastate.edu/ogc/), we can grab WMS (Web Map Service) Tiles.  This is the most recent reflectance (when the slides were compiled).
+
+```{r}
+leaflet() %>% addTiles() %>% setView(-93.65, 42.0285, zoom = 4) %>%
+  addWMSTiles(
+    "http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi",
+    layers = "nexrad-n0r-900913",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+    attribution = "<br>Weather data © IEM Nexrad"
+  )
+```
+
+
+
+
+# Abstract Geometries
+
+## Mapping Polygons
+
+```{r}
+library(maps)
+states <- map("state",fill=TRUE, plot=FALSE)
+summary(states)
+```
+
+
+
+## Mapping Polygons
+
+
+```{r}
+leaflet( states ) %>% addTiles() %>%
+  addPolygons( fillColor= rainbow(10, alpha=NULL), stroke=TRUE, weight=1.0 )
+```
+
+
