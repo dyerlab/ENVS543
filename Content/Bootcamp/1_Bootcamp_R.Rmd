@@ -1,0 +1,163 @@
+---
+title: "Bootcamp - R, RStudio, Interactions"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+source("./startup.R")
+```
+
+
+
+
+> This is a short outline of the materials and R content that is presented as the 'bootcamp' portion of the course.
+
+
+# Background 
+
+This is the stuff that needs to be gone over before we can start being interactive.  
+
+> ... Robert Gentleman and I became colleagues at The University of Auckland. We both had an interest in statistical computing and saw a common need for a better software environment in our Macintosh teaching laboratory. We saw no suitable commercial environment and we began to experiment to see what might be involved in developing one ourselves.
+
+Which resulted in the following email being posted to the s-news listserve on 4 August 1993 by Ross Inhatka and Robert Gentleman in response to a question about getting S running on macintosh computers (they just came out and were quite popular at the time).
+
+
+> Date: Wed, 4 Aug 93 14:01:31 NZS  
+> From: Ross Ihaka   
+> To: S-news@utstat.toronto.edu  
+> Subject: Re: Is  S  available for a Macintosh personal computer?  
+> 
+> Joseph B Kruskal writes:
+> 
+> > If anyone knows of an S available for a Macintosh computer, I
+> would be pleased to hear about it. 
+> 
+> About a year ago Robert Gentleman and I considered the problem of
+> obtaining decent statistical software for our undergraduate
+> Macintosh lab.  After considering the options, we decided that
+> the most satisfactory alternative was to write our own.  We
+> started by writing a small lisp interpreter.  Next we expanded
+> its data structures with atomic vector types and altered its
+> evaluation semantics to include lazy evaluation of closure
+> arguments and argument binding by tag as well as order.  Finally
+> we added some syntactic sugar to make it look somewhat like S.
+> We call the result "R".
+> 
+> R is not ready for release at this point, but we are committed to
+> having it ready by March next year (when we start teaching with
+> it).
+> 
+> Because there is likely to be some interest in it we are going to
+> put some (SPARC/SGI/Macintosh) binaries on Statlib later this
+> week so people can give it a test drive.
+> 
+> 'll send out a short note when the binaries are available.
+> 
+> THIS IS NOT AN OFFICIAL RELEASE.  PLEASE DON'T BUG US ABOUT IT.
+> WE ARE FULLY OCCUPIED WITH TEACHING AND ADMINISTRATIVE WORK AT
+> PRESENT.
+> 
+> WHEN THE SOURCE CODE IS STABLE, WE WILL MAKE IT AVAILABLE THROUGH
+> STATLIB.
+> 
+> Robert will be at the ASA meetings in S.F. next week ...
+>
+> ...
+> 
+> Ross Ihaka
+
+
+## Chronology
+
+
+```{r fig.cap="A short chronology of S and R.", fig.lp="fig"}
+source("Bootcamp/Bootcamp_Chronology.R")
+```
+
+
+## Data & Narrative
+
+What if we can mix the data
+
+```{r}
+load("./data/araptus.rda")
+datatable( araptus )
+```
+
+
+
+## Data & Narrative 
+
+The spatial distribution of $N =$ `r sum(araptus$Male) + sum(araptus$Female)` individuals were sampled from $K =$ `r nrow(araptus)` sampling sites covered the entire known extent for *Araptus attenuatus* (Figure 1).  On average the sex ratio (Females:Males) within each of the sampling locales varied considerably, ranging from a low of `r min( araptus$Females / araptus$Males )` to `r max( araptus$Females / araptus$Males )`.
+
+```{r fig.cap="*Figure 1:* The spatial distribution of sample locations for the Sonoran Desert bark beetle (*Araptus attenuatus*).", eval=TRUE, fig.align="left"}
+library(leaflet) 
+
+
+leaflet(data = araptus) %>%
+  addProviderTiles(provider="Stamen.TerrainBackground") %>%
+  addCircleMarkers(weight=1, fill=TRUE, color="#fff") %>%
+  addLabelOnlyMarkers(label=~as.character(Site), 
+                      labelOptions = labelOptions(noHide=TRUE,
+                                                  direction='center',
+                                                  textOnly = TRUE))
+
+
+```
+
+Evidence of differential sex-biased dispersal is revealed by differential structure in biparental and uniparentally inherited genetic markers.  The expectation under equal dispersal betweeen sezes for maternally inherited mitochondrial markers ($F_{ST;mt}$) and biparent nuclear markers ($F_{ST; nuc}$) are (see also Hartl & Clark 1997; Wang 1997 for another formulation):
+
+\[
+F_{ST; mt}= \frac{8 F_{ST;nuc}}{1 + 7 F_{ST; nuc} }
+\]
+
+
+
+```{r echo=TRUE}
+library(leaflet)
+library(leaflet.minicharts)
+
+leaflet() %>%
+  addProviderTiles( providers$Esri.WorldTopoMap) %>%
+  addMinicharts( 
+    araptus$Longitude, araptus$Latitude,
+    type = "pie",
+    chartdata = araptus[, c("Males","Females")],
+    width = araptus$Suitability*30
+    )
+
+```
+
+
+## Results
+
+```{r}
+araptus %>%
+  mutate( SexRatio = Females / Males ) -> araptus
+
+model <- glm( SexRatio ~ log(Suitability), 
+              data = araptus,
+              family = Gamma() )
+summary(model)
+```
+
+Female beetles seem to be selecting locales in more suitable habitats (Figure 2), which is consistent with a Gaussian log normal distribution (GLM; intercept = `r summary(model)$coefficients[1,1]`; coef =`r summary(model)$coefficients[2,1]`; P =`r summary(model)$coefficients[2,4]`).  This suggests that males who establish brood chambers at the margins of the species niche are actively selected against by maturing females.
+
+```{r fig.cap="*Figure 2:* Variation in the observed sex ratio of *A. attenuatus* locales as a function of habitat suitability as determined by MAXENT Niche modeling of host plant distributions.", fig.align="left"}
+araptus %>%
+  ggplot( aes(Suitability, SexRatio) ) + 
+  geom_smooth(formula = y ~ log(x), 
+              method=glm, 
+              se=FALSE, 
+              color="red",
+              size=0.5) +
+  geom_point() +
+  xlab("Habitat Suitability") +
+  ylab("Observed Sex Ratio (F/M)") +
+  theme_minimal() + xlim( c(0,1) ) + ylim(c(0.25,1.75))
+```
+
+
+
+
+

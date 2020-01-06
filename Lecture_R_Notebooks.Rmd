@@ -1,0 +1,20 @@
+---
+title: "Using R Notebooks"
+author: 'Bootcamp'
+date: 'ENVS543: Environmental Data Literacy'
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    hightlight: tango
+    logo: "../../logo.png"
+    css: "../../style.css"
+---
+
+```{r setup, include=FALSE}
+source("../../startup.R")
+```
+
+
+## R Notebooks
+
