@@ -8,8 +8,6 @@ source("./startup.R")
 ```
 
 
-
-
 > This is a short outline of the materials and R content that is presented as the 'bootcamp' portion of the course.
 
 
@@ -71,7 +69,7 @@ Which resulted in the following email being posted to the s-news listserve on 4 
 
 
 ```{r fig.cap="A short chronology of S and R.", fig.lp="fig"}
-source("Bootcamp/Bootcamp_Chronology.R")
+source("Bootcamp/1_Bootcamp_Chronology.R")
 ```
 
 
