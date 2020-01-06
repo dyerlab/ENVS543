@@ -69,7 +69,7 @@ Which resulted in the following email being posted to the s-news listserve on 4 
 
 
 ```{r fig.cap="A short chronology of S and R.", fig.lp="fig"}
-source("Bootcamp/1_Bootcamp_Chronology.R")
+source("./1_Bootcamp_Chronology.R")
 ```
 
 
@@ -78,7 +78,7 @@ source("Bootcamp/1_Bootcamp_Chronology.R")
 What if we can mix the data
 
 ```{r}
-load("./data/araptus.rda")
+araptus <- read_csv( "araptus.csv")
 datatable( araptus )
 ```
 
@@ -90,7 +90,6 @@ The spatial distribution of $N =$ `r sum(araptus$Male) + sum(araptus$Female)` in
 
 ```{r fig.cap="*Figure 1:* The spatial distribution of sample locations for the Sonoran Desert bark beetle (*Araptus attenuatus*).", eval=TRUE, fig.align="left"}
 library(leaflet) 
-
 
 leaflet(data = araptus) %>%
   addProviderTiles(provider="Stamen.TerrainBackground") %>%
