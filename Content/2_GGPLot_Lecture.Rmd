@@ -1,0 +1,225 @@
+---
+title: "GGPlot"
+output: html_notebook
+---
+
+## Loading in the libraries
+
+The *meta library* that contains `ggplot2` (plus a bunch more) is found in the `tidyverse` library.
+
+```{r message=FALSE}
+library( tidyverse )
+```
+
+
+
+
+
+
+```{r}
+summary(airquality)
+```
+
+
+## Univariate Plot
+
+```{r}
+ggplot( airquality, aes( Wind ) ) + geom_histogram()
+```
+
+
+
+
+
+
+
+
+```{r}
+ggplot( airquality, aes( Wind, color=Month ) ) + geom_histogram( binwidth=0.5 )
+```
+
+
+
+## Components
+
+
+```{r eval=FALSE}
+ggplot()  +  geom_XXXXX()   +  geom_YYYY() + coord_XXXX() + stat_XXXX()  + theme_XXX()
+```
+
+
+
+
+
+## Aesthetic Mapping
+
+```{r}
+aes( x = Temp, y = Wind )
+```
+
+
+## Bivariate Data
+
+
+```{r}
+ggplot( airquality, aes( x = Temp, y = Wind) ) + geom_point()
+```
+
+
+```{r eval=FALSE}
+ggplot( airquality, aes( x = Temp, y = Wind) ) + geom_point()
+ggplot() + geom_point( aes( x = Temp, y = Wind ), data = airquality )
+ggplot( airquality ) + geom_point( aes( x = Temp, y = Wind ) )
+ggplot( aes( x = Temp, y = Wind ) ) + geom_point( data = airquality )
+```
+
+
+
+## Taking Care of Dates
+
+```{r}
+head(airquality)
+```
+
+
+
+Check out the [Dates Cheatsheet](https://github.com/rstudio/cheatsheets/raw/master/lubridate.pdf).
+
+```{r}
+airquality %>%
+  mutate( DateString = paste( Month, Day, "1973", sep="/") ) %>%
+  mutate( Date = parse_date( DateString, format="%m/%d/%Y") ) %>%
+  select( Ozone, Wind, Temp, Date) -> df
+
+summary(df)
+```
+
+
+```{r}
+df %>%
+  mutate( Weekday = weekdays(Date) ) -> df
+summary(df)
+```
+
+
+
+
+GGPlot knows how to deal with a date on the x-axis.
+
+```{r}
+ggplot( df, aes(Date,Temp)) + geom_line() 
+```
+
+
+```{r}
+library(RColorBrewer)
+df$Weekday <- weekdays( df$Date )
+ggplot( df, aes(Wind, fill=Weekday)) + geom_histogram() + scale_fill_brewer( type="div")
+```
+
+Regular layout, not ordered, just different
+
+```{r}
+factor( df$Weekday )
+```
+
+Ordered Factor, default is alphabetical.
+
+
+```{r}
+factor( df$Weekday, ordered=TRUE )
+```
+
+Ordered factor, set sequence.
+
+```{r}
+factor( df$Weekday, 
+        ordered=TRUE, 
+        levels = c("Monday","Tuesday","Wednesday","Thursday", "Friday", "Saturday", "Sunday"))
+```
+
+
+
+```{r}
+df$Weekday <- factor( df$Weekday, 
+                      ordered=TRUE, 
+                      levels = c("Monday","Tuesday","Wednesday",
+                                 "Thursday", "Friday", 
+                                 "Saturday", "Sunday"))
+ggplot( df, aes( x = Temp, y = Wind, color = Weekday) ) + geom_point() 
+```
+
+
+```{r}
+ggplot( df, aes( x = Temp, y = Wind, shape = Weekday) ) + geom_point() 
+```
+
+
+```{r echo=TRUE}
+ggplot( df, aes( x = Temp, y = Wind, shape = Weekday) ) + 
+  geom_point()  + 
+  scale_shape_manual( values = c(1:7))
+```
+
+
+## Partitions
+
+
+
+```{r}
+ggplot( df, aes(Wind)) + 
+  geom_histogram( binwidth=1.0) + 
+  facet_grid( Weekday ~ .) 
+```
+
+
+
+
+## Overlays
+
+
+```{r}
+ggplot( df, aes( x = Wind, y = Temp ) ) +
+  geom_point() + 
+  stat_smooth()
+```
+
+
+```{r}
+ggplot( df, aes( x = Wind, y = Temp ) ) +
+  geom_point() + 
+  stat_smooth( method="lm")
+```
+
+
+
+```{r}
+ggplot( df, aes( x = Wind, y = Temp ) ) +
+  stat_smooth( method="lm", se=FALSE, col="red", size=0.5) +
+  geom_point() + 
+  xlab("Wind Speed (MPH)") + ylab("Air Temperature (F)")
+```
+
+
+
+## Themes 
+
+```{r}
+p <- ggplot( df, aes(Date,Temp)) + geom_line() 
+p + theme_bw()
+```
+
+
+
+```{r}
+p + theme_dark()
+```
+
+```{r}
+p + theme_light()
+```
+
+```{r}
+p + theme_classic()
+```
+

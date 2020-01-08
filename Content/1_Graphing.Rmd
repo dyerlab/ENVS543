@@ -1,0 +1,275 @@
+---
+title: "Basic Graphing"
+output: html_notebook
+---
+
+This notebook covers materials for basic plotting in R.
+
+## Example Data Set
+
+```{r}
+summary(airquality)
+```
+
+
+
+```{r}
+?airquality
+```
+
+
+
+## Univariate Plotting
+
+Plotting of a single variable.
+
+```{r}
+temp <- airquality$Temp 
+```
+
+
+
+### Discrete Bins
+
+Default plot for histograms.
+
+```{r}
+hist( temp )
+```
+
+Specifying where the breaks are for each bin.
+
+```{r}
+hist( temp, breaks = seq(50,100,by=5))
+```
+
+Plot as probability density instead of counting the frequency of each bin.
+
+```{r}
+hist( temp, freq = FALSE)
+```
+
+
+```{r}
+hist( temp, axes=FALSE )
+```
+
+
+
+```{r}
+p <- hist( temp, plot=FALSE )
+p
+```
+
+
+
+
+
+
+
+### Density Estimation
+
+Estimate a *density* of the data across the observed values as a continuous function.
+
+```{r}
+d <- density( airquality$Temp )
+d
+```
+
+The object itself, is of 'class'
+
+```{r}
+class(d)
+```
+
+which knows how to plot itself.
+
+```{r}
+plot(d)
+```
+
+
+### Normality Plots
+
+Testing to see if the data are 'normal'-ly distributed.
+
+```{r}
+qqnorm( temp )
+qqline( temp, col="red")
+```
+
+
+
+
+## Bivariate Plotting
+
+
+
+### Two Continuous Variables
+
+Plotting of pairs of variables.
+
+```{r}
+plot(Wind ~ Solar.R, data=airquality)
+```
+
+
+
+
+
+
+
+### Continuous Response, Categorical Predictor
+
+```{r}
+summary(iris)
+```
+
+
+
+```{r}
+boxplot( Petal.Length ~ Species, data=iris)
+```
+
+
+
+
+
+```{r}
+mean_petal_length <- by( iris$Petal.Length, 
+                         iris$Species, 
+                         mean )
+barplot(mean_petal_length,
+        xlab="Species of Iris", 
+        ylab="Average Petal Length")
+```
+
+
+
+
+
+
+
+## Kustomized Plotz
+
+Scatter plot characters.
+
+
+```{r}
+plot( 1:25, 1:25, pch=1:25, cex=2, xlab="Plot Character", ylab="Plot Character" )
+```
+
+
+```{r}
+plot( 1:25, 1:25, cex = (1:25)/10  )
+```
+
+
+Changing the axes & titles
+
+```{r}
+plot( Wind ~ Solar.R, data=airquality, bty="n", xlab="This is the x-axis label", ylab="The y-axis", main="Main Title" )
+```
+
+
+Scaling the range of both axes
+
+```{r}
+plot( Wind ~ Solar.R, data=airquality, xlim=c(0,500), ylim=c(0,50) )
+```
+
+
+
+Existing color palettes.  These values are in HEX (base 16 counting 0 - F) and have a pair of values for Red, a pair for Green, and a pair for Blue (e.g., #RRGGBB).  There are some built-in color palettes, each of which you specify the number of values.
+
+```{r}
+rainbow( n = 12 )
+terrain.colors( n = 12 )
+topo.colors( n = 12 )
+```
+
+We can plot the airquality data for these using the number of the month as the index on the rainbo
+
+```{r}
+plot( Wind ~ Solar.R, 
+      pch = 19, 
+      col=rainbow(12)[ Month ], 
+      data=airquality)
+```
+
+
+Custom color spaces
+
+```{r}
+library(colorspace)
+par(mfrow = c(3, 3))
+cl <- sequential_hcl(5, "Heat")
+for (i in c("map", "heatmap", "scatter", "spine", "bar", "pie", "perspective", "mosaic", "lines")) {
+  demoplot(cl, type = i)
+}
+```
+
+Colorbrewer (see also [colorbrewer website](http://colorbrewer2.org)).
+
+```{r fig.height=10}
+RColorBrewer::display.brewer.all()
+```
+
+
+Here is an example using *Set 3* from the Qualitative Set.
+
+```{r}
+boxplot( Solar.R ~ Month, data=airquality, col=brewer.pal(12, "Set3"))
+```
+
+### Barplots
+
+```{r}
+summary(mtcars)
+```
+
+
+
+```{r}
+counts <- table( mtcars$gear )
+counts
+```
+
+```{r}
+barplot( counts,
+         xlab="Number of Gears", 
+         col = c("#FE1212", "#FED100", "#009B3A"))
+```
+
+
+## Pie Charts
+
+Actually one of the worse types of plot for interpreting angles (humans suck at that task).
+
+```{r}
+pie(
+  c(280, 60, 20),
+  c('Sky', 'Sunny side of pyramid', 'Shady side of pyramid'),
+  col = c('#0292D8', '#F7EA39', '#C4B632'),
+  init.angle = -50, border = NA
+)
+```
+
+
+## Overlaying Objects
+
+Cannot do this line-by-line, but have to do the whole chunk at one time.
+
+```{r}
+plot( Wind ~ Solar.R, data=airquality)
+
+# absolute line with intercept = 15 and slope = 0, dashed and red.
+abline(a=15, b=0, col="red", lty=2)
+
+# abline with predicted line from regression as dotted blue
+abline( lm( Wind ~ Solar.R, data=airquality), lty=3, col="blue")
+
+# add a legend to the plot
+legend( 75, 22, c("regression line", "fake line"), lty=c(3,2), col=c("blue","red"), bty="n", horiz=TRUE )
+```
+

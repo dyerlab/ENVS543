@@ -1,0 +1,75 @@
+---
+title: "Basic Graphing Homework"
+author: "YOUR NAME HERE"
+output: html_notebook
+---
+
+## The Data
+
+For this assignment, we will be using the built-in data from the annual review for 1974 from *Motor Trends Magazine*.  Here are the columns for the raw data in that dataset (it is `mtcars` in R).
+
+```{r}
+names(mtcars)
+```
+
+These don't mean much (see `?mtcars` for a description) and we don't need them all for this homework.  I'll take a subset of the data to play with and clean it up in the code below (it is OK if it looks a bit puzzling, in a week or so, you'll totally be able to do this).  I call the new data `data` (I know, very imaganitive).
+
+```{r message=FALSE }
+library(tidyverse)
+
+mtcars %>%
+  select( MPG = mpg, 
+          Displacement = disp, 
+          Horsepower = hp, 
+          Weight = wt, 
+          QuarterMile = qsec, 
+          Cylinders = cyl, 
+          Gears = gear, 
+          Transmission = am ) %>%
+  mutate( Gears = factor( Gears, ordered=TRUE ), 
+          Transmission = factor( ifelse( Transmission == 0, "Automatic", "Manual") ), 
+          Cylinders = factor( Cylinders, ordered=TRUE ) ) -> data
+
+summary(data)
+```
+
+**IMPORTANT:** In all the following plots, make sure you label the axes appropriately and make the plot *look like* it is supposed to be in a publication.  
+
+
+## Univariate Plots
+
+1. Make a plot of the distrubtion for each of the variables MPG.  
+
+```{r}
+hist( data$MPG, xlab = "Miles Per Gallon", main="") 
+```
+
+2. Make a Density plot of the Displacement.
+
+```{r}
+d <- density( data$Displacement )
+plot(d, bty="n", main="", xlab="Engine Displacement")
+```
+
+
+3. Create a scatter plot of MPG as a function of Horsepower.  Color each symbol by the number of cylinders and make the shape of the point indicate the transmission type.
+
+```{r}
+plot( MPG ~ Horsepower, 
+      data=data, 
+      ylab="Miles Per Gallon (MPG)",
+      col = Cylinders, 
+      pch = as.numeric(Transmission) , 
+      bty = "n")
+legend( 150, 30, c("Automatic","Manual"), 
+        pch=c(1,2), 
+        bty="n", 
+        horiz = TRUE)
+legend( 150, 28, c("3 Cylinder","4 Cylinder","5 Cylinder"), 
+        col=c("black","red","green"), 
+        pch=20, 
+        horiz = TRUE, 
+        bty="n")
+```
+
+
