@@ -7,14 +7,28 @@ output: html_document
 knitr::opts_chunk$set(echo = FALSE)
 library(knitr)
 library(tidyverse)
+library(lubridate)
 library(kableExtra)
 ```
 
 
 
 ```{r}
-schedule <- data.frame( Week = 1:16 )
-schedule$Dates <- (schedule$Week - 1)*7 + parse_date("2020-01-14")
+
+data.frame( Week = rep( 1:16, each=2) ) %>%
+  mutate( Offset = 1:2 ) %>%
+  mutate( Topic = "") %>%
+  select( Week, Date, Topic)
+
+
+
+schedule <- data.frame( Week = rep( 1:16, each=2) )
+schedule$Offset <- c(1,3)
+schedule$Date <- parse_date("2020-01-06") + days( schedule$Week * 7 ) + days( schedule$Offset )
+
+schedule
+
+
 
 schedule$Topics <- c(
   "R & RStudio",
