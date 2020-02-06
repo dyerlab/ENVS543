@@ -1,0 +1,8 @@
+---
+title: "7 Lines & Polygons"
+author: "Your Name Here"
+output: html_notebook
+---
+
+Here we add more `geometry` types to our analyses but connecting series of points togehter to forms either lines (a sequence of two or more points that are connected) or polygons (a line that connects back onto itself).
+

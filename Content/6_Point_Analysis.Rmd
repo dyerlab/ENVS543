@@ -1,0 +1,48 @@
+---
+title: "6 Point Based Analysis"
+output: html_notebook
+---
+
+## Spatial Visualization
+
+```{r message=FALSE, warning=FALSE, echo=TRUE}
+library(tidyverse)
+data <- read_csv("araptus.csv")
+summary(data)
+```
+
+
+```{r}
+sort( unique( data$Site ) )
+```
+
+
+
+
+```{r}
+library(sf)
+```
+
+### Specifying GEOMETRY
+
+```{r}
+araptus <- st_as_sf( data, coords = c("Longitude","Latitude") )
+summary(araptus)
+```
+
+
+
+### Cooordinate Referece Systems
+
+```{r}
+st_crs( araptus )
+```
+
+### Using EPSG Codes
+
+```{r}
+st_crs(araptus) <- 3857
+st_crs( araptus )
+```
+
+

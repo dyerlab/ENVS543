@@ -1,0 +1,210 @@
+---
+title: "5 Leaflet"
+author: "Your Name Here"
+output: html_notebook
+---
+
+Thus far, we've seen how play with points and rasters as static entities in `R`.  We have a lot more to do to work with them but before we get too far into the whole thing, I want to make a slight detour and introduce some non-static visualization approaches using the leaflet library.  
+
+Leaflet is a JavaScript library created to make interactive maps.  It has full integration with `R` as much of the dynamical output we create here is presented in HTML format, just like on a webpage.  This exercise will get you familiar with the basics of leaflet for interactive visualizations.
+
+
+```{r}
+library(leaflet)
+
+?leaflet
+```
+
+
+### A Basic Map
+
+A leaflet display has a few restraints—the size of the window used for plotting and the spatial extent to show within the window.  The most basic of maps we can make need to specify at least the area we are interested in seeing.  We do this using `setView()` and specifying the centroid of the view and a `zoom` level.  If you have used any of the online mapping tools, you understand the nature of `zoom`, it is the + and - buttons that... wait for it... zoom.
+
+Here is an example where I set zoom = 17 showing a map of Texas Beach (which is apprently the center of Richmond Virginia at 2 decimal places).
+
+```{r}
+leaflet() %>% 
+  setView( lng= -77.47, lat= 37.53, zoom=17 ) %>% 
+  addTiles()
+```
+
+If you lower the zoom, it zooms out.
+
+```{r}
+leaflet() %>% 
+  setView( lng= -77.47, lat= 37.53, zoom=12 ) %>% 
+  addTiles()
+```
+
+### Adding Tiles
+
+The `addTiles()` call is what sets the tiles on the map.  Tiles for leaflet plots are the static background images that make the image a 'map'.  There are tile servers all over the internet that provide these static images for all online mapping purposes.
+
+There are many tile providers available and we specify them in the `addTiles()` function.  From the image above, you can see it attirbuted to OpenStreetMap as the tile provider.  To change that, we use `addProviderTiles()` and indicate which one we are grabbing from.
+
+```{r}
+leaflet() %>% 
+  setView( lng= -77.47, lat= 37.53, zoom=12 ) %>% 
+  addProviderTiles( providers$OpenTopoMap )
+```
+
+
+Here is a list of tile providers we can use, scroll through them for fun.
+
+```{r}
+names(leaflet::providers) %>% tibble()
+```
+
+Here is something artistic... (watercolors)
+
+```{r}
+leaflet() %>% 
+  setView( lng= -77.47, lat= 37.53, zoom=12 ) %>% 
+  addProviderTiles( providers$Stamen.Watercolor )
+```
+
+Here is the ESRI topo map
+
+```{r}
+leaflet() %>% 
+  setView( lng= -77.47, lat= 37.53, zoom=12 ) %>% 
+  addProviderTiles( providers$Esri.WorldTopoMap )
+```
+
+
+You can also grab custom tile sets representing real-time data.  For this we need to access a *W*eb *M*ap *S*ervice (e.g., a server that providing these tiles).  Below, the Argon National Laboratory provides real-time weather data.
+
+```{r}
+leaflet() %>% 
+  setView( lng=-86.0490, 35.1495, zoom = 5 ) %>% 
+  addProviderTiles( providers$OpenTopoMap ) %>% 
+  addWMSTiles(
+    "http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi",
+    layers = "nexrad-n0r-900913",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+    attribution = "Weather data © 2012 IEM Nexrad"
+  )
+```
+
+We can even adjust the opacity of these layers by addtion options to each layer.  Here I add `providerTileOptions( opacity = 0.5 )` to the WMS Tile provider.
+
+```{r}
+leaflet() %>% 
+  setView( lng=-86.0490, 35.1495, zoom = 5 ) %>% 
+  addProviderTiles( providers$OpenTopoMap ) %>% 
+  addWMSTiles(
+    "http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi",
+    layers = "nexrad-n0r-900913",
+    options = c(WMSTileOptions(format = "image/png", transparent = TRUE),
+                providerTileOptions( opacity = 0.65) ),
+    attribution = "Weather data © 2012 IEM Nexrad"
+  )
+```
+
+
+### Adding Real Data
+
+We will use the old *Araptus attenuatus* data set from Baja California for the rest of this exercise.  It can be loaded as:  
+
+```{r message=FALSE}
+library(tidyverse)
+araptus <- read_csv("./data/araptus.csv") 
+summary( araptus )
+```
+
+To feed these data into leaflet, we need to add them as markers and indicate the columns in this `data.frame` that represent Longitude and Latitude.  When we add data as markers, we *do not* need to use `setView()` as the map will zoom to a level that shows all the markers.
+
+```{r}
+araptus %>%
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers( lng=~Longitude, lat=~Latitude)
+```
+
+Notice how we are passing the data to `leaflet()` then to `addTiles()` then to `addMarkers()`.  In the `addMarkers()` function, we are are taking a bit of a shortcut using the little tilde in front of the names of the columns representing the longitude and latitude.  The function definition is as follows (see `?leaflet::addMarkers`)
+
+```
+addMarkers(map, lng = NULL, lat = NULL, layerId = NULL,
+  group = NULL, icon = NULL, popup = NULL, popupOptions = NULL,
+  label = NULL, labelOptions = NULL, options = markerOptions(),
+  clusterOptions = NULL, clusterId = NULL, data = getMapData(map))
+```
+
+In the piping of the data through the functions, the raw data goes to leaflet creating the widget, which is passed to the addTiles creating a tile set on that map and passing it to the addMarkers. The first argument to the `addMarkers()` function as shown above is the map, so that is being passed via the `%>%` operators.  We can even shorten it a bit more by **always** putting `lng` first and `lat` next (taking the $2^{nd}$ and $3^{rd}$ arguments passed to the function) and drop the `lng=` and `lat=` parts.  Making this even shorter, which would produce the exact same map as above.
+
+```{r eval=FALSE}
+araptus %>%
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers( ~Longitude, ~Latitude)
+```
+
+### Clustering Markers
+
+The map above is quite busy, you can cluster markers that are in close proximity to clean up the display by setting `clusterOptions`.
+
+```{r}
+araptus %>%
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers( lng=~Longitude, lat=~Latitude, 
+              clusterOptions = markerClusterOptions()
+              )
+```
+
+
+### Custom Icons
+
+There are quite a few custom icon providers that we can use.  By default, they use ones from [Glyphicon](https://getbootstrap.com/docs/3.3/components/#glyphicons).  In addition to the icon itself, 
+
+```{r}
+
+araptus %>%
+  mutate( color = ifelse( Suitability < 0.4, "red", "green"),
+          icon = ifelse( Suitability < 0.2, "fire", "leaf" ) )  -> tmp
+
+icons <- awesomeIcons(  markerColor = tmp$color,
+                        iconColor = 'white',
+                        icon = tmp$icon, 
+                        spin=TRUE )  
+
+araptus %>%
+  leaflet() %>%
+  addTiles() %>%
+  addAwesomeMarkers( ~Longitude, ~Latitude, icon = icons )
+```
+
+
+
+### Adding Labels to the Plots
+
+
+```{r}
+araptus %>%
+  mutate( Label = paste("Site:", Site))  %>%
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers(~Longitude, ~Latitude, label=~Label )
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
