@@ -1,0 +1,306 @@
+---
+title: "Rasters"
+author: "YOUR NAME HERE"
+output: html_notebook
+---
+
+This notebook will take a basic overview of raster data.
+
+Rasters are a form of data that is georeferenced and (somewhat) continuous.  Raster data is perhaps best envisioned as a matrix of values, whose entries represent spatially referenced data points.  The raster itself can be visualized as you could for normal matrix output.  What makes a raster different, however, is that it is (or should be) georeferenced. This means that each element of the matrix represents some measurement on the ground having a specific location and spread.  This is analogous to an image, where if you zoom in on it enough, you will be able to differentiate between individual pixels, it is just that for rasters, each pixel has a spatial location and size associated with it that we can map onto the earth.
+
+You can either create raster objects *de novo* or you can acquire them from some external source.  To create one from scratch, you start with a matrix of values and then construct the raster object using the `raster()` function as:
+
+```{r}
+library(raster)
+r <- matrix(runif(10000),nrow=100)
+rnd <- raster( r )
+rnd
+```
+
+which can be visualized using the normal plot command. The raster library has overridden several of the plotting functions and you can plot raster objects and decorate the images in the same way you do for normal plotting materials (\@ref(graphics)).
+
+```{r}
+plot(rnd)
+```
+
+## Raster Structure
+
+A Raster is simply a matrix of values, and in fact, we can get to the contents of the raster data using the function `values()` (these R people are sneaky!)
+
+```{r}
+values(rnd) -> x
+class(x)
+```
+
+```{r}
+head(x)
+```
+
+
+Just like any other matrix, we can do operations on the contents of the raster itself.  
+
+```{r}
+values( rnd ) <- values(rnd) * -1 
+plot(rnd)
+```
+
+## Loading Rasters from Files
+
+Rasters come in many formats and there is a wide array of file types that we can import.  For simplicity, we are going to use GeoTIFF formats for input because they represent a large fraction of content we may need to get.
+
+From the Blackboard site, download the `data.zip` file and uncomprtess it in the same folder as this notebook.  You **are** using RStudio as a project, right?  It should decompress into a folder called `data` and if you look into it it will have the following data files.
+
+```{r}
+list.files(path="./data")
+```
+
+Some of these are raw text files (the .csv files), some are `R` data (the .rda), some are netCDF files (the .nc) and the rest are GeoTiff files (the .tif ones).  
+
+To load in the data, we first load in the `raster` library^[If you do not have it installed, just type `install.packages("raster")` and it will be installed on your machine].
+
+```{r}
+library(raster)
+```
+
+
+
+Then we can load in one of these files using the `raster()` function and passing it the path to the file *relative to this document*.
+
+```{r}
+elev <- raster("data/alt_22.tif")
+elev
+```
+
+Take a minute and look at the raster funciton help file.
+
+```{r}
+?raster
+```
+
+For an object like a `raster` we can identify some basic commands they understand and know how to do.
+
+```{r}
+methods( class="raster" )
+```
+
+So, it is clear that we can plot the raster using the normal plotting commands (don't worry, `ggplot` comes into play in a little bit).
+
+```{r}
+plot( elev, xlab="Longitude", ylab="Latitude", col)
+```
+
+Congratulations!!!!! You did it.
+
+## Cropping Rasters
+
+That is a rather large extent we are dealing with and for the purpose of our needs, we are going to only use a subset of that big raster.  To do this, we need to define an extent (e.g., the bounding box in terms of minimum and maximum longitude and latitude that we want) and then create a new raster that is a cut-out of the previous one.
+
+```{r}
+?extent
+```
+
+Let's make an extent that contains just the Baja California section.
+
+```{r}
+e <- extent( -116, -108, 22, 30)
+e
+```
+
+We can do this by `eyeballing` it, or use an interactive plotting on the raster (and the old mouse) to get some points.  There is a great function for this called `click()`.
+
+```{r}
+?click
+```
+
+And can be used like the code below. This is an interactive thing, so I am not going to run the chunk below (notice the `eval=FALSE` code in the first line of the chunk), do it IRL and you will see the output of the x, y, and the value of the cell you are clicking on printed out to the console.
+
+```{r eval=FALSE}
+plot(elev)
+click( elev, xy=TRUE, n=2 )
+```
+
+The `click()` function can create points, line, polygons, have them plotted, or whatever you like.  Quite helpful.  But for our purposes, we just need it to identify the extent of Baja California and then we will use that to `crop()` the original raster.
+
+```{r}
+baja_elev <- crop( elev, e )
+baja_elev
+```
+
+Which now looks like:
+
+```{r}
+plot( baja_elev, 
+      xlab="Longitude",
+      ylab="Latitude",
+      main = "Elevation for Baja California",
+      col = terrain.colors( 50 ) )
+```
+
+Now that we have the elevation for our target region, we can delete the big raster from our memory.
+
+```{r}
+rm( elev )
+```
+
+
+## `GGPlot` and Rasters
+
+As you probably can guess, `ggplot` has the ability to do this kind of work as well.
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+We are going to use our way cool piping function `%>%` to:  
+ 1. load in the raster,  
+ 2. crop it to the extent we want  
+ 3. turn it into a `data.frame` object
+
+```{r}
+raster("data/alt_22.tif") %>%
+  crop( extent( -116, -108, 22, 30) ) %>%
+  rasterToPoints() %>%
+  data.frame() -> baja_df
+
+summary( baja_df )
+```
+
+What this did was make a large `data.frame` object that we will use for plotting.  It is rather large.
+
+```{r}
+dim( baja_df )
+```
+
+
+Now, we can plot it using the `geom_tile()` or it's identical twin (that is a bit faster in execution) `geom_raster()` functions.  
+
+```{r}
+baja_df %>%
+  ggplot( aes(x,y,fill=alt_22) ) + 
+  geom_raster() + 
+  coord_equal()
+```
+
+We can adjust the color ramp to be more approriate as:
+
+```{r}
+baja_df %>%
+  ggplot( aes(x,y,fill=alt_22) ) + 
+  geom_raster() + 
+  coord_equal() + 
+  scale_fill_gradientn( name="Elevation (m)", 
+                        colours = terrain.colors(100)) + 
+  theme_bw() + 
+  xlab("Longitude") + ylab("Latitude")
+```
+
+## Extracting Data From Rasters
+
+OK, it is all nice an good that we can make, load, manipulate, and plot rasters, what about extracting raw data from them?  
+
+To extract data at points, we need to identify the points.
+
+```{r}
+Cities <- c("Cabo San Lucas", "La Pax", "Loreto", "San Javier")
+Longitude <- c(-109.916, -110.310, -111.343, -111.544)
+Latitude <- c(22.890, 25.144, 26.012, 25.860 )
+
+cities_df <- data.frame(Cities, Longitude, Latitude)
+
+summary( cities_df )
+
+```
+
+Now let's plot this.
+
+```{r}
+library( ggrepel )
+baja_df %>%
+  ggplot( ) + 
+  geom_raster( aes(x,y,fill=alt_22) ) + 
+  geom_label_repel( aes(x = Longitude, 
+                        y = Latitude, 
+                        label = Cities), 
+                    data=cities_df) + 
+  coord_equal() + 
+  scale_fill_gradientn( name="Elevation (m)", 
+                        colours = terrain.colors(100)) + 
+  theme_bw() + 
+  xlab("Longitude") + ylab("Latitude")  
+```
+
+To extract the data, we need to identify the items listed in the data frame as representing "Longitude" and "Latitude" objects and make it a type of data that can be 
+
+```{r}
+city_pts <- SpatialPoints( cbind(Longitude, Latitude) )
+city_pts
+```
+
+Next *AND THIS IS EXTREMELY IMPORTANT*, we need to specify the *Coordinate Reference System* for these data.  Notice how ours is missing,
+
+```{r}
+crs( city_pts )
+```
+
+What we want to do is make it the same as the raster we will be extracting data from.
+
+```{r}
+crs( baja_elev )
+```
+
+To do this, we assign the `crs` of the raster to the points.  **THIS IS NOT A RE-PROJECTIONS OF THE POINTS, THESE ARE ALERADY IN THE SAME PROJECTION, WE ARE JUST TELLING R WHAT THEY ARE**
+
+```{r}
+crs( city_pts ) <- crs( baja_elev )
+city_pts
+```
+
+We will come back to reprojecting points, lines, and polygons later.
+
+Now we can do the extraction.
+
+```{r}
+raster::extract( baja_elev, city_pts )
+```
+
+Why might that second point be missing?
+
+## In Class Work
+
+So as an exercise, it may be fun to pull out some more data.  In the `data` folder, there is a csv file with a bunch of elevation points in it.  Let's use that as an example to look at some read biological data.
+
+These data are the known locations of samples collected for the plant [Euphorbia lomelii](https://www.google.com/search?q=Euphorbia+lomelii&oq=Euphorbia+lomelii&aqs=chrome..69i57.4304j0j7&sourceid=chrome&ie=UTF-8), a Sonoran Desert endemic plant (and one of the non-pokey plants in the desert I worked with).
+
+```{r}
+euphorbia <- read_csv("./data/EuphorbiaAllLocations.csv")
+```
+
+```{r}
+summary( euphorbia )
+```
+
+```{r}
+head( euphorbia )
+```
+
+First, plot the baja elevation map and onto that plot the points from the euphorbia data.frame.
+
+```{r}
+
+```
+
+Next, extract the elevations for the locales of each plant and create a histogram or density plot of the elevations at which these plants are found.
+
+```{r}
+
+```
+
+Compare this to the elevation of the raster we have (hint: we can get to the raw values of the raster as `values()`, right?).
+
+```{r}
+
+```
+
+
+
+

@@ -1,0 +1,28 @@
+---
+title: "Homework 1: Basic Graphing"
+author: "Put Your Name Here"
+output: html_notebook
+---
+
+> This homework will allow you to start working in R, RMarkdown, and get some basic graphing skills down on the page (digital page that is).  Please turn this in via blackboard by the start of class on 30 January 2020.  Upload an HTML version of this file directly (and make sure the chunks are run and the output shows).
+
+## The Data
+
+For this exercise, you will use the following data set (included in R).  
+
+```{r}
+summary(mtcars)
+```
+
+To learn more about the individual columns of data, look at the help file `?mtcars`
+
+
+## The Exercises.
+
+Please construct the following graphs.  When doing so, please make sure to label all the axes.
+
+1. A histogram of `MPG`.
+2. A density plot of `Horsepower`.
+3. A scatter plot of `MPG` as a function of `Displacement` with the following characteristics:
+  - Points colored by the number of `gears`.
+  - Point shapes by the number of `carburetors`.

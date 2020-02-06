@@ -1,0 +1,83 @@
+---
+title: "GGPlot Homework"
+author: "Put Your Name Here"
+date: "`r Sys.Date()`"
+output: html_notebook
+---
+
+```{r setup, echo=FALSE}
+
+# This code is the 'setup' chunk.  An it is run each time you knit the document.  What the code
+#  below does is check to see if you have the DT library installed on the machine you are working
+#  on, and if you do not, it installs it for you.
+if( !require(DT) ) {
+  install.packages("DT")
+}
+
+# I am also going to load in the tidyverse constellation of packages that all have the 
+#   ggplot and other libraries for us.  If we put it in the setup chunk, we don't get 
+#   that huge dump of messages in the document AND we are assured that each time we open
+#   and run the code in this notebook, all the correct libraries are loaded in for us.
+library(tidyverse)
+```
+
+
+## The Data
+
+This homework will focus on developing graphing skills using the `ggplot2` library.  For this, we are going to use an existing dataset named `CO2` consisting of 84 records of cold tolerance for the grass species *Echinochloa crus-galli*.  The data itself consists of the rate of carbon dioxide uptake for a dozen plants, divided amongst two treatments, the first is chill/no-chill & and the second one represents the origin of the plants (Quebec & Mississippi).  The raw data columns are:  
+  - Plant An ordered `factor` indicating the sample plant.  
+  - Type  An unordered factor indicating the origin of the plant.  
+  - Treatment  An unordered factor representing the cold treatment.  
+  - conc  The concentration of ambient carbon dioxide.  
+  - uptake  The rate of updake of ambient carbon dioxide $\left[ \frac{\mu M}{m^2} * sec \right]$.  
+
+Which in R, the raw data look like:
+
+```{r}
+# load in the DT (data.table) library (installed in the setup chunk) has the
+#  datatable function that allows you to ahve an interactive widget in HTML form
+#  that allows you to see and make queries of the data set.
+library(DT)
+
+datatable( CO2 )
+```
+
+and can be summarized as:
+
+```{r}
+summary(CO2)
+```
+
+## Summarizing Univariate Data
+
+For the first set of plots, we will summarize a single set of data, `uptake`. In the following chunks, comments indicate what kind of graphics should be made using `ggplot` functions.  I load in the `tidyverse` constellation of libraries (of which `ggplot2` is one of) and we can go from there.
+
+
+
+```{r}
+# create a histogram of CO2 uptake
+
+```
+
+
+
+
+
+## Summarizing Bivariate Data
+
+For this section, we are going to focus on two sets of data.
+
+
+
+
+## Colors and Shapes
+
+
+
+
+
+
+
+
+
+

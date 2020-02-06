@@ -61,10 +61,12 @@ plot( MPG ~ Horsepower,
       col = Cylinders, 
       pch = as.numeric(Transmission) , 
       bty = "n")
+
 legend( 150, 30, c("Automatic","Manual"), 
         pch=c(1,2), 
         bty="n", 
         horiz = TRUE)
+
 legend( 150, 28, c("3 Cylinder","4 Cylinder","5 Cylinder"), 
         col=c("black","red","green"), 
         pch=20, 

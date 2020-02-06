@@ -1,0 +1,109 @@
+---
+title: "GGPlot Homework"
+author: "Put Your Name Here"
+date: "`r Sys.Date()`"
+output: html_notebook
+---
+
+```{r setup, echo=FALSE}
+
+# This code is the 'setup' chunk.  An it is run each time you knit the document.  What the code
+#  below does is check to see if you have the DT library installed on the machine you are working
+#  on, and if you do not, it installs it for you.
+if( !require(DT) ) {
+  install.packages("DT")
+}
+
+# I am also going to load in the tidyverse constellation of packages that all have the 
+#   ggplot and other libraries for us.  If we put it in the setup chunk, we don't get 
+#   that huge dump of messages in the document AND we are assured that each time we open
+#   and run the code in this notebook, all the correct libraries are loaded in for us.
+library(tidyverse)
+```
+
+
+## The Data
+
+This homework will focus on developing graphing skills using the `ggplot2` library.  For this, we are going to use an existing dataset named `CO2` consisting of 84 records of cold tolerance for the grass species *Echinochloa crus-galli*.  The data itself consists of the rate of carbon dioxide uptake for a dozen plants, divided amongst two treatments, the first is chill/no-chill & and the second one represents the origin of the plants (Quebec & Mississippi).  The raw data columns are:  
+  - Plant An ordered `factor` indicating the sample plant.  
+  - Type  An unordered factor indicating the origin of the plant.  
+  - Treatment  An unordered factor representing the cold treatment.  
+  - conc  The concentration of ambient carbon dioxide.  
+  - uptake  The rate of updake of ambient carbon dioxide $\left[ \frac{\mu M}{m^2} * sec \right]$.  
+
+Which in R, the raw data look like:
+
+```{r}
+# load in the DT (data.table) library (installed in the setup chunk) has the
+#  datatable function that allows you to ahve an interactive widget in HTML form
+#  that allows you to see and make queries of the data set.
+library(DT)
+
+datatable( CO2 )
+```
+
+and can be summarized as:
+
+```{r}
+summary(CO2)
+```
+
+In all the the exercises below, I provide the narriative outline in Markdown and you will work on putting code in the R Chunk and in a few cases *provide a narriative of what the graphic shows you.*  Each of the graphics will be graded based upon:
+ - Proper setup of `ggplot()`  
+ - Proper aesthetics (e.g., the thing that is supposed to be on the x-axis actually is).  
+ - Labeling of the Axes in *Title Case*
+ - Embellishments and showing off using color and other cool stuff will be rewarded handsomly.
+
+
+## Summarizing Univariate Data
+
+For the first set of plots, we will summarize a single set of data, `uptake`. In the following chunks, comments indicate what kind of graphics should be made using `ggplot` functions.  I load in the `tidyverse` constellation of libraries (of which `ggplot2` is one of) and we can go from there.
+
+Create a raw histogram of the $CO_2$ uptake by all the plants with a binwidth equal to 2 $\mu M (m^2)^{-1}$.
+
+```{r}
+CO2 %>%   
+  ggplot() + 
+  geom_histogram( aes(uptake), binwidth = 2 ) + 
+  xlab("CO2 Uptake") + ylab("Frequency") + 
+  theme_classic()
+```
+
+Create a density plot of $CO_2$ uptake in the sample plots but set `fill=Type` so we can see any potential differences between the samples collected from `r levels(CO2$Type)[1]` and those from `r levels(CO2$Type)[2]`.  Adjust the `alpha` of the `geom_density()` layer so that you can see the distribution of both of them.
+
+```{r}
+library(RColorBrewer)  # to make it look pretty
+CO2 %>%
+  ggplot() + 
+  geom_density( aes(uptake, fill=Type), alpha=0.5 ) + 
+  scale_fill_brewer( palette="Set3") + 
+  theme_classic()
+```
+
+
+
+## Summarizing Bivariate Data
+
+For this section, we are going to focus on two sets of data.  First, let's look at the differences in $CO_2$ uptake as a function of the treatment being applied (`r paste( levels(CO2$Treatment), sep=" & ") `) visualized as boxplots with notches.
+
+```{r}
+CO2 %>%
+  ggplot( aes(Treatment,uptake) ) + 
+  geom_boxplot( notch=TRUE ) + 
+  ylab("CO2 Uptake") + 
+  theme_classic()
+```
+
+*REPLACE THIS TEXT WITH A BRIEF (SENTENCE OR TWO) SUMMARY OF THE GRAPHICAL OUTPUT ABOVE*
+
+## Colors and Shapes
+
+
+
+
+
+
+
+
+
+

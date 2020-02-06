@@ -1,6 +1,8 @@
 ---
 title: "Basic Graphing"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 This notebook covers materials for basic plotting in R.
@@ -212,7 +214,8 @@ for (i in c("map", "heatmap", "scatter", "spine", "bar", "pie", "perspective", "
 Colorbrewer (see also [colorbrewer website](http://colorbrewer2.org)).
 
 ```{r fig.height=10}
-RColorBrewer::display.brewer.all()
+library(RColorBrewer)
+display.brewer.all()
 ```
 
 

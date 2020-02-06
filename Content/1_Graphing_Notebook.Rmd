@@ -1,0 +1,57 @@
+---
+title: "Graphing In Class"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. In Blackboard, right click on the link to this file and download it to your computer.  In RStudio, $File \to Open$ the HTML file and it will open up as Markdown Notebook.
+
+## The Data - Air Quality
+
+For this exercise in graphing, we will be using some data that is already available in R.
+
+Look at the data set in raw form using the function `head()` that will print out the first 6 rows (*n.b.* there is a corresponding `tail()` function for the last 6 rows as well).
+
+```{r}
+head( airquality )
+```
+
+Or you can look at the kinds of variables that are in the data using the `str()` function (which is short for "structure").
+
+```{r}
+str( airquality )
+```
+
+You can also get a summary of the variables in the data set using (wait for it) `summary()` (cleaver naming scheme in effect!)
+
+```{r}
+summary( airquality )
+```
+
+You can always look at the data in a *spreadsheet* format using `View()` (not shown here as it works within RStudio not in a webpage).
+
+```{r eval=FALSE}
+View(airquality)
+```
+
+
+### Shortcuts (for lazy typers)
+
+For simplicity, I'll make a new variable `temp` that has the data column within 
+
+```{r}
+temp <- airquality$Temp
+wind <- airquality$Wind
+```
+
+
+
+## Univariate Plots
+
+```{r}
+
+```
+
+
+
+
+

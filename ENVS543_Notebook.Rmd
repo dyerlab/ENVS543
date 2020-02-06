@@ -1,0 +1,14 @@
+---
+title: "R Notebook"
+author: "Put Your Name Here"
+date: "`r lubridate::today()`"
+output: html_notebook
+---
+
+
+This is an R Notebook.  It can handle raw text, *like this* as well as other stuff.
+
+```{r}
+summary( airquality )
+```
+
