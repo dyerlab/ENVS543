@@ -1,0 +1,334 @@
+---
+title: "4 Projections & Points"
+author: "Your Name Here"
+output: html_notebook
+---
+
+## Basic Background of Projections
+
+Projections are a way that we can pretend to represent geospatial locations onto a 2-dimensional surface (paper or screen).  They are entirely constructs, made for us, because of the lower dimensional representation.
+
+Here is a short video that discusses these issues *and* provides an example of how we can actually make maps that do not have distortions while at the same time can be viewed as a 2-dimensional represenation...  (intriguing I know...)
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/D3tdW9l1690" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+## Projections in R
+
+Perhaps one of the best ways for us to see this is to look at some maps and apply different projections to them.  I'm going to do this using the `maps` library^[If you do not have it, install it using `install.packages("maps")`].  
+
+The projections being applied are detailed in:
+
+```{r}
+?mapproject
+```
+
+These are for demonstration purposes mostly, the key step in your data wrangling is that the first thing you should do is put all of your geospatial data into the same coordiante system and projections--and then forget about it!
+
+### Equatorial Projections
+
+These are projections centered on the prime meridian (e.g., Longitude=0).  This is a common projection we all are familiar with (and why Greenland looks bigger than Africa on some maps)
+
+```{r}
+library(maps)
+map( "state", proj="mercator")
+```
+
+```{r}
+map( "state", proj="gilbert")
+```
+
+We can change the location of the prime meridian, here I'm moving the center of this projection to be in the center of the US.
+
+```{r}
+map("state", proj="cylequalarea", par=39.83)
+```
+
+But this sure distorts other parts of the globe, look at the size of Africa, S. America, and Australia.
+
+```{r}
+map( "world", proj="cylequalarea", par=39.83 )
+```
+
+### Azimuth Projections
+
+These projections are centered on the North Pole with parallels making concentric circles. Meridians are equally spaced radial lines.
+
+Here are for
+
+```{r}
+par( mfrow = c(2,2),     # this bit of code makes 2x2 plots with no margin
+     mar = c(0,0,0,0) ) 
+map("state",proj="azequidistant")
+map("state",proj="fisheye", par=500)
+map("state",proj="perspective", param=8)
+map("state",proj="gnomonic")
+```
+
+### Polar Conic Projections
+
+Here projections are symmetric around the Prime Meridian with parallel as segments of concentric circles with meridians being equally spaced.
+
+```{r}
+par( mfrow = c(2,2),     
+     mar = c(0,0,0,0) )
+map("state", proj="conic",   par = 39.83)
+map("state", proj="lambert", par = c( 30, 40 ) )
+map("state", proj="albers",   par = c( 30, 40 ) )
+map("state", proj="simpleconic", par = c( 30, 40 ) )
+```
+
+### Silly Projections
+
+There are some additional, miscellanouse projections, that we can play with.  
+
+```{r}
+par( mfrow = c( 2, 2 ), 
+     mar = c( 0, 0, 0, 0) )
+map("state",proj="square")
+map("state",proj="hex")
+map("state",proj="bicentric", par=-98)
+map("state",proj="guyou")
+```
+
+## Coordinate Systems
+
+Onto these projections, we can define individual coordinate systems.  These define the the physical location of entites (e.g., the coordinates).  There is a huge range of coordinate systems available for us to work with—sometimes I think people make up new ones just be snarky... That being said, the ones we will encounter often include:  
+ - UTM (Universal Transverse Mercator) measuring the distance from the prime meridian for the x-coordinate and the distance from the equator (often called northing in the northern hemisphere) for the y-coordinate. These distances are in meters and the globe is divided into 60 zones, each of which is 6 degrees in width.   
+ - Geographic coordinate systems use longitude and latitude. For historical purposes these are unfortunately reported in degrees, minutes, seconds, a temporal abstraction that is both annoying and a waste of time (IMHO).  
+ - Decimal degrees, while less easy to remember, are easier to work with in R.  
+ - State Planar coordinate systems are coordinate systems that each US State has defined for their own purposes. They are based upon some arbitrarily defined points of reference and another pain to use (IMHO). Given the differential in state area, some states are also divided into different zones. Maps you get from municipal agencies may be in this coordinate system. If your study straddles different zones or even state lines, you have some work ahead of you…  
+
+It is best to use a system that is designed for your kind of work. Do not, for example, use a state plane system outside of that state as you have bias associated with the distance away from the origin. That said, Longitude/Latitude (decimal degrees) and UTM systems are probably the easiest to work with in R.
+
+To play with these we will load in some example data, from Baja California.  Here are sampling locations in and the census of the number of males and female *Araptus attenuatus* individuals.  
+
+This data file is a CSV file that is posted with this notebook.  Download it and put it into the `data` folder you have been working with thus far.
+
+```{r}
+araptus <- read.csv("data/araptus.csv")
+
+# or load("data/araptus.rda" ) if you do not have the CSV file in the data folder
+```
+
+These data look like the following and have a census of the number of male and female beetles collected at sites throughout Baja California as well as an estimation of the habitat suitability from a Niche Modeling exercise.
+
+```{r}
+summary( araptus )
+```
+
+The 'coordinates' we specified are just points, which we happened to label as "Latitude" and "Longitude" but we could have called them "X" and "Y" and unless you specify the CRS, R will pretend like it has no idea what system you are using.  If we want to make them represent real coordiantes (as in Latitude and Longitude we yanked off our GPS unit or grabbed from Google Earth), we need to specify the CRS directly.  
+
+Here is a quick way to set a CRS using EPSG codes, an EPSG code (see [EPSG.io](https://epsg.io) for more information) is a shorthand notation for a coordinate reference system.  There are tons of different projects available and you can make up your own if you like. 
+
+Let's look at a particular CRS, `epsg:3857`.  This is the projection that is used by Google Maps, ESRI, OpenStreet Maps, Bing, and other providers and is equivallent to (for those who care) to the following `WKT` definition:
+
+```
+ PROJCS["WGS 84 / Pseudo-Mercator",
+    GEOGCS["WGS 84",
+        DATUM["WGS_1984",
+            SPHEROID["WGS 84",6378137,298.257223563,
+                AUTHORITY["EPSG","7030"]],
+            AUTHORITY["EPSG","6326"]],
+        PRIMEM["Greenwich",0,
+            AUTHORITY["EPSG","8901"]],
+        UNIT["degree",0.0174532925199433,
+            AUTHORITY["EPSG","9122"]],
+        AUTHORITY["EPSG","4326"]],
+    PROJECTION["Mercator_1SP"],
+    PARAMETER["central_meridian",0],
+    PARAMETER["scale_factor",1],
+    PARAMETER["false_easting",0],
+    PARAMETER["false_northing",0],
+    UNIT["metre",1,
+        AUTHORITY["EPSG","9001"]],
+    AXIS["X",EAST],
+    AXIS["Y",NORTH],
+    EXTENSION["PROJ4","+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"],
+    AUTHORITY["EPSG","3857"]]
+```
+
+We can get a bit of information from it in `R` by looking at the `proj4` string using the `rgdal` library.
+
+```{r}
+library( rgdal )
+
+# if you get an error on your machine make sure you have it installed.
+#  install.packages( "rgdal" )
+
+make_EPSG()  %>%
+  dplyr::filter( code == 3857) %>% 
+  dplyr::select( prj4 ) 
+```
+
+### The `sf` Library
+
+There is a very useful library for us to play with using what is called *Simple Features*.  This library defines some new data types for POINTS, LINES, POLYGONS, etc that can be used in normal `data.frame` objects (rather than hiding the data in odd structures like the `sp` library does).
+
+Here I take the above data and indicate that a column will be treated as a geometry object representing both Longitude and Latitude.  This makes it *both* a `data.frame` and a `sf` object simultaneously.
+
+```{r}
+library( sf )
+library( magrittr ) # this is the library that gives us the %>%
+
+araptus %>%
+  st_as_sf( coords = c("Longitude","Latitude") ) -> arapat_sf
+
+class( arapat_sf )
+```
+
+And if we look at it, it looks like:
+
+```{r}
+summary(arapat_sf)
+```
+
+and individual rows are:
+
+```{r}
+head( arapat_sf )
+```
+
+Notice how the geometry column is recognized as a POINT object.  This is *critical* as it is the *lingua Franca* for interacting with GeoDatabase objects, online services, etc.
+
+One of the things we need to shore up is that the points here have no coordinate reference system.  
+
+```{r}
+st_crs( arapat_sf )
+```
+
+To set the CRS of an existing data set (*NOT REPROJECTING*) we can use `st_crs` as well.
+
+```{r}
+st_crs( arapat_sf) <- 3857
+arapat_sf
+```
+
+The `st_crs()` function can also be used to grab the `proj4string` (and vice-versa) if you want to. You initiate a CRS with epsg and then grab the `proj4string` object from it.
+
+```{r}
+st_crs("+init=epsg:3857")$proj4string
+```
+
+Going forward, we can load in a data set, make it into an `sf` object (in addition to being a `data.frame` object), and apply specify the coordinate reference system quickly by piping the `read_csv()` function into the `st_as_sf()` function, which literally "converts a forenign object into an sf object" (pretty much a quote from the help page) and at the same time, we can specify that when you read this in and translate it, apply the `epsg:3857` CRS at the same time.
+
+```{r}
+read.csv("data/araptus.csv") %>%
+  st_as_sf( coords = c("Longitude","Latitude"), 
+            crs = 3857 ) -> arapat_sf
+```
+
+Now, when we print out the data, it shows some additional information.
+
+```{r}
+arapat_sf
+```
+
+And notice how the Longitude and Latitude columns have been collapsed into a single column `geometry` that is prepresented as a `POINT()` object.  This is a lot like what we did with taking the columns of `Month` and `Day` from the beginning `airquality` data set and turning them into a single column of data that was represented by a `Date` object.
+
+
+## Transforming Points
+
+So perhaps we want to transform the coordinates from Longitude/Latitude to one of the coverages specifically designed for Mexico.  To do this, we need to find a definition of the new projection we are using.  For simplicity, I will translate the Lat/Lon of the previous data set into UTM using Zone 11 which covers the west coast of north america.  This happens to be espg code 32612 and you can find it by searching [EPSG.io](EPSG.io).
+
+```{r}
+make_EPSG()  %>%
+  dplyr::filter( code == 32611) %>% 
+  dplyr::select( prj4 ) -> mex_proj
+
+mex_proj
+```
+
+So we can use either the epsg code:
+
+```{r}
+st_transform( arapat_sf, crs = 32611 ) 
+```
+
+or the full proj4 string as:
+
+```{r}
+st_transform(arapat_sf,crs = mex_proj$prj4[1] ) -> arapat_mex
+arapat_mex
+```
+
+
+Now, when we plot it, check out the axes.
+
+```{r}
+plot( arapat_mex, axes=TRUE )
+```
+
+
+### GGPlot and `sf` Objects
+
+Just because we have now simplified our data representation to have `geometry` objects represented within a `data.frame` with the rest of the data, we should now be able to leverage the power of ggplot2 to make our lives even better...  
+
+So when we pass ggplot a `data.frame` that has `geometry` objects as columns, it will automagically use those for coordinates.  As a result, we only need to specify data for the geometric layer we want to overlay on it and how to represent those data on the plot.  
+
+In this example, we have a set of points in the `geometry` that we are able to use to show differences in the sex ratio (the ratio of females to males) of the locale and then use this to plot it.
+
+```{r}
+library(ggplot2)
+
+arapat_sf %>%
+  dplyr::mutate( SexRatio = Females/Males ) %>%
+  ggplot() +
+  geom_sf( aes(size=SexRatio) ) + 
+  scale_size_continuous( name = "Sex Ratio") +
+  xlab("Longitude") + ylab("Latitude")
+```
+
+We can combine this with the stuff from the `raster` exercises from a week ago into a single plot of these points over the top of the elevation raster
+
+```{r}
+library(raster)
+raster( "data/alt_22.tif") %>%
+  crop( extent( -116, -108, 22, 30) ) %>%
+  rasterToPoints() %>%
+  data.frame() -> baja_df
+
+arapat_sf %>%
+  dplyr::mutate( SexRatio = Females/Males ) %>%
+  ggplot() + 
+  geom_raster( aes(x,y,fill=alt_22), data=baja_df) + 
+  geom_sf( aes(size=SexRatio), color="red" ) + 
+  scale_size_continuous( guide="none" ) +
+  scale_fill_gradientn( name="Elevation (m)", 
+                        colours = terrain.colors(100)) + 
+  theme_bw() + 
+  xlab("Longitude") + ylab("Latitude")
+
+```
+
+
+## In Class Activities
+
+Take the `arapat` data set and tranform it into another projection. 
+
+```{r}
+# arapat -> some other projection found on epsg.io
+
+```
+
+
+Create a plot where habitat suitability is displayed spatially for the transformed data set.
+
+```{r}
+# Habitat suitability 
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
