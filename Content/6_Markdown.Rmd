@@ -1,0 +1,339 @@
+---
+title: "6 Markdown"
+output: html_notebook
+---
+
+```{r setup, echo=FALSE}
+library( tidyverse )
+library(knitr)
+library(kableExtra)
+library(DT)
+```
+
+
+
+Markdown is a tool for taking `raw text` values and *annotating* them in such a way as they can be properly submitted to typography, independent of how they are **displayed**.  As a tool, Markdown was developed by [John Gruber]() and defined as:
+
+> Markdown is a text-to-HTML conversion tool for web writers. Markdown allows you to write using an easy-to-read, easy-to-write plain text format, then convert it to structurally valid XHTML (or HTML).
+>
+> Thus, “Markdown” is two things:  
+>  1) a plain text formatting syntax; and   
+>  2) a software tool, written in Perl, that converts the plain text formatting to HTML.
+> 
+
+You can see the original blog post from Gruber dating to December 2004 on his blog [Daring Fireball](https://daringfireball.net/projects/markdown/).
+
+To display the typography (highlights, italics, bold, links, etc. in the previous paragraph, I typed the following *verbatim* into the notebook document.
+
+```
+Markdown is a tool for taking `raw text` values and *annotating* them in such a way as they can be properly submitted to typography, independent of how they are **displayed**.  As a tool, Markdown was developed by [John Gruber]() and defined as:
+
+> Markdown is a text-to-HTML conversion tool for web writers. Markdown allows you to write using an easy-to-read, easy-to-write plain text format, then convert it to structurally valid XHTML (or HTML).
+>
+> Thus, “Markdown” is two things:  
+> -  (1) a plain text formatting syntax; and   
+> -  (2) a software tool, written in Perl, that converts the plain text formatting to HTML.
+
+You can see the original blogpost from Gruber dating to December 2004 on his blog [Daring Fireball](https://daringfireball.net/projects/markdown/).
+
+To display the typography (highlights, italics, bold, links, etc. in the previous paragraph, I typed the following *verbatim* into the notebook document.
+```
+
+As you can see it is a very *easy* way to both write and read content.  Here are a few use-cases (e.g., specific situations in which the approach may be potentially useful):
+
+<p style="margin-left: 20px; text-indent: -20px;">*Multiple Output* - Right now, if you want to take something you've written and provide it as a document and a presentation, you would have to use two different sources of software, (1) A word or text processor, and (2) some kind of presentation software.  If you were going to then take it and publish it online in some format, it would have to be copied, pasted, and perhaps reformatted into some other program for saving it to HTML.  In Markdown, all the content is provided as plain text documents so there is no need to rewrite or reformat it using different kinds of software.  </p>
+
+<p style="margin-left: 20px; text-indent: -20px;">*Automatic Reports* - Perhaps you are running an experiment measuring environmental conditions at the Rice Rivers Center. On the pier, there is instrumentation that takes readings every 15 minutes.  It would be nice to be able to create weekly & monthly reports from these streams of data that fill out a `template` report style and automatically get email to you or put into an online repository (or Google drive perhaps).  If you were to have to do this manually, you would have to download the data, open it in a spreadsheet, make some summary statistics, and then save it as a report in a particular format.  In RMarkdown, we can have this done automatically.</p>
+
+<p style="margin-left: 20px; text-indent: -20px;">*Manuscript Components* - When you write a manuscript in a word processing document, you define, by hand, the structure.  What constitutes Figure 1 is whatever you decide to put on the caption of an image for *Figure 1*.  If you have a bunch of equations, they are typically numbered as well, same with citations.  Imagine the case where you submit your manuscript to your adviser and they say something like, "Why don't you put in a map of the study area before any of the other figures" and "Add this equation to page 6".  What you have to do now is manually insert the map and take everything that was labeled as *Figure 1* (the caption **and** all the in-text citations) and make them *Figure 2*.  Do the same with *Figure 2* to make it *Figure 3*, etc.  Similarly, for the equation, you need to renumber all the other equations after the new one you inserted on page 6 and make sure all of the in-text references to these equations all match up properly.</p>
+
+<p style="margin-left: 20px; text-indent: -20px;">*Manuscript Analyses* - Imagine that your manuscript is almost finished and then you realize you have some additional samples that you can add to the analyses you conducted.  Normally, this would require you to redo all of your analyses and then *manually* go through all the text of the manuscript and update the sample sizes, degrees of freedom, test statistics, and p-values throughout the Methods and Results sections of your manuscript.</p>
+
+These examples illustrate where RMarkdown can provide you some additional benefits over normal word processing and analysis software.  So how does it work?
+
+
+## Markup for Text
+
+Text markup is how we make normal text (e.g., the stuff you are reading right now) to show up properly.  This is concerned with typography (normal, fixed font, bold, italic, links, etc.) and structure components such as headers, sub headers, lists, itemized bullets,  tables, and quotations.
+
+
+### Text Markup
+
+The following are examples of how to mark up some text and the results.  The stuff given in the 'box' is what you put in the markdown document and the part immediately after it is how it is rendered.
+
+```
+This is how you make *italicized* and **bold** components within a sentence.
+```
+This is how you make *italicized* and **bold** components within a sentence.
+
+
+```
+To make an item `fixed font` surround it with back-ticks (that one in the upper left corner of your keyboard).
+```
+To make an item `fixed font` surround it with back-ticks (that one in the upper left corner of your keyboard).
+
+
+Links require you to identify both the text that will act as the link (the part to be clicked on) and the address of the link itself. This two-part display requires both square brackets and parentheses.  The order is important, the stuff to be kept in the text is in the square brackets and the stuff for the internet link is in the parentheses.
+
+``` 
+On my [Laboratory Website](https://dyerlab.org) you can find a list of papers I've published.
+```
+On my [Laboratory Website](https://dyerlab.org) you can find a list of papers I've published.
+
+
+Images use a very similar approach to links, except that there is an exclamation mark in front of the square brackets and the stuff you put into the brackets will be used as the *caption* under the figure.  The address can either be a URL to some image on the internet (as below) or a path to an image *relative to the folder in which this document is located*.
+
+```
+![Dr. D & Lady S at Montmartre in 2018 with what appers to be a *George Michael look-alike* in the background.](https://live.staticflickr.com/65535/49531575957_d835e77243_b.jpg)
+```
+
+![Rodney & Sarah at Montmartre in 2018 with what appers to be a *George Michael look-alike* in the background.](https://live.staticflickr.com/65535/49531575957_d835e77243_b.jpg)
+
+
+### Structural Components
+
+These represent parts of the text that have specific structure to them.  
+
+Headers are preceeded by a hashtag.
+
+```
+# Header 1
+## Header 2
+### Header 3
+#### Header 4
+##### Header 5
+```
+
+# Header 1
+## Header 2
+### Header 3
+#### Header 4
+##### Header 5
+
+**Unordered lists** required two things.  The ending of the line before the list and each item in the list *must* have two spaces at the end and you must have a blank line before the list items start (*sensu stricto* this applies to any nesting of lists but it is a good habit to get into for regular stuff as well).
+
+```
+Styles of Beer   
+
+- German Pilsner  
+- Helles  
+- Bock  
+- Helles Bock  
+- Norther German Altbier  
+```
+
+Styles of Beer   
+
+- German Pilsner  
+- Helles  
+- Bock  
+- Helles Bock  
+- Norther German Altbier  
+
+You can have sublists by making more spaces before the dash of the indented list part.  Use tabs to indent for subitems to keep it clean.
+
+```
+German Styles:  
+
+- Bock Styles      
+  - Maibock  
+  - Helles Bock  
+  - Eisbock  
+  - Double Bock  
+- Wheat Styles  
+  - Hefeweizen  
+  - Roggenbier  
+
+```
+
+German Styles:  
+
+- Bock Styles      
+  - Maibock  
+  - Helles Bock  
+  - Eisbock  
+  - Double Bock  
+- Wheat Styles  
+  - Hefeweizen  
+  - Roggenbier  
+
+
+**Ordered Lists** are just like unordered ones except that you put in a number for the first one.
+
+```
+This is my list.
+
+1. First
+2. Second 
+3. Third
+```
+
+This is my list.  
+
+1. First  
+2. Second   
+3. Third  
+
+You can also mix them up a bit.
+
+
+```
+Ordered and Unordered Lists
+
+1. First item on the list  
+2. Second item.  
+    - Sub-item 1  
+    - Sub-item 2  
+3. Third thing  
+```
+Ordered and Unordered Lists
+
+1. First item on the list  
+2. Second item.  
+    - Sub-item 1  
+    - Sub-item 2  
+3. Third thing  
+
+To make a quotation (e.g., one that is indented), prepend a greater-than sign to the line of code.
+
+> The night is dark and full of terrors, the day bright and beautiful and full of hope. There is ice and there is fire. Hate and love. Bitter and sweet. Male and female. Pain and pleasure. Winter and summer. Evil and good. Death and life. Everywhere, opposites. Everywhere, the war.
+> 
+> Davos III.
+
+### Tables in Text
+
+Tables from text are constructed rather pedanticaly using dash (-) and pipe (|) characters.  Here is a table of my favorite beer recipe, *Rodney's West-Coast Pale Ale* for a 7 gallon batch.
+
+```
+Amount   | Item              | Description                                | IBU 
+:-------:|-------------------|--------------------------------------------|----:
+12.0 lbs | Pale 2-row malt   | Base Malt                                  | -
+2.0 lbs  | Crystal Malt 40L  | Adjunct adding caramel flavors             | -
+0.8 lbs  | Carapils/Dextrine | Adjunct increasing mouthfeel               | -
+0.8 lbs  | Munich 20L        | Adjunct adding biscuit overtones           | -
+35g      | Cascade Hops      | 60 minute bittering addition               | 27.4
+20g      | Cascade Hops      | 30 minute bittering/flavor addition        | 5.9
+20g      | Cascade Hops      | 15 minute flavor/aroma addition            | 3.0
+20g      | Cascade Hops      | Whirlpool at 160 for 15 minutes.           | 0.8
+2pkg     | British Ale Yeast | Moderate attenuation and fruity phelolics. | -  
+20g      | Cascade Hops      | Dry hop for 7 days for aroma               | 0.0
+```
+
+Amount   | Item              | Description                                | IBU 
+:-------:|-------------------|--------------------------------------------|----:
+12.0 lbs | Pale 2-row malt   | Base Malt                                  | -
+2.0 lbs  | Crystal Malt 40L  | Adjunct adding caramel flavors             | -
+0.8 lbs  | Carapils/Dextrine | Adjunct increasing mouthfeel               | -
+0.8 lbs  | Munich 20L        | Adjunct adding biscuit overtones           | -
+35g      | Cascade Hops      | 60 minute bittering addition               | 27.4
+20g      | Cascade Hops      | 30 minute bittering/flavor addition        | 5.9
+20g      | Cascade Hops      | 15 minute flavor/aroma addition            | 3.0
+20g      | Cascade Hops      | Whirlpool at 160 for 15 minutes.           | 0.8
+2pkg     | British Ale Yeast | Moderate attenuation and fruity phelolics. | -  
+20g      | Cascade Hops      | Dry hop for 7 days for aroma               | 0.0
+
+OK, there are a few things to notice:  
+
+1. The pipe characters determine what collumn each bit of information is contained.    
+2. The -|- header row defines the labels  (stuff above it) and content (stuff below).
+3. We can justify the columns of data using a colon on the -|- header row.
+    - Using `|----|` left justifies the content (the default, you could also use `|:---|`).
+    - Using `|---:|` right justifies the contnet.
+    - Using `|:--:|` center justifies the content.
+4. You do not need to line everything up, but it sure does make it easier to read.
+
+## R and Markdown
+
+One of the cool things we can do is integrate our analyses and our data into a single document.  To add `R` code, you make a chunk.
+
+
+```{r}
+identity <- "This is the stuff that was defined within a chunk."
+```
+
+When you print something from a chunk, it shows it in-line.
+
+```{r}
+identity
+```
+
+
+We can also make the chunk not show in the text by setting the chunk option to `echo=FALSE` in the top part where we define the code as being `r`.
+
+```{r echo=FALSE}
+secret <- "This is text from a hidden chunk"
+secret
+```
+
+
+
+We can even define stuff in chunks and then put it into the text (as if we typed it directly).
+
+```{r}
+grades <- c(15, 28, 22, 27)
+```
+
+To do so, we need to use an *inline chunk*, which is a single backtick and the letter r as follows.  Here is how we would write it followed by what it looks like in the rendered document.
+
+```
+The average grade for the quiz was `r '\x60r mean(grades)\x60'`.
+```
+
+The average grade for the quiz was `r mean(grades)`. 
+
+Here is a more complex paragraph using a few different inline values and showing how to embed the results from a correlation test (we will get to the specifics of this later in the semester).  Here is the chunk that I do the analysis in (n.b., I would set `echo=FALSE` to make it invisible in the final version of the document).
+
+```{r}
+test_correlation <- cor.test( iris$Petal.Length, iris$Petal.Width )
+```
+
+Then in the next paragrph I reference things from that analysis (things like the p-value, the estimate, the parameter, etc. using the dollar sign notation just like we do in referencing particular columns of data in a data.frame).  So the text below:
+```
+The data set `iris` consists of `r '\x60r nrow(iris)\x60'` observations of `r '\x60r ncol(iris)\x60'` columns of data (labeled as: `r '\x60r paste( names(iris),collapse=", ")\x60'` ).  The correlation between petal width and height was significant (Pearson Correlation, df = `r '\x60r test_correlation$parameter\x60' `; r = `r '\x60r format( test_correlation$estimate, digits=3) \x60'`; t = `r '\x60r format(test_correlation$statistic, digits=3) \x60'`; P = `r '\x60r format(test_correlation$p.value, digits=3) \x60'`.
+```
+
+*Is rendered as:*
+
+The data set `iris` consists of `r nrow(iris)` observations of `r ncol(iris)` columns of data (labeled as: *`r paste( names(iris),collapse=", ")`*).  The correlation between petal width and height was significant (Pearson Correlation, df = `r test_correlation$parameter`; r = `r format( test_correlation$estimate, digits=3)`; t = `r format(test_correlation$statistic, digits=3)`, P = `r format(test_correlation$p.value, digits=3)`).
+
+Notice how you have no indication that the paragraph is filled out using variables estimated from the data.  If at some point down the road, the data change, then the values in this paragraph *automagically* change as well!
+
+
+### Table from R Data
+
+If we have a `data.frame` object, even if it has a lot of data in it, as long as the output is HTML (like this notebook) we can use JavaScript widgets to examine the data.  This interface allows us to search for data, sort the data and have a variable number of entries to view.
+
+```{r}
+library(DT)
+datatable(iris)
+```
+
+We can also take data from a data.table and make it display as an in-text table.  For this we need to use the `kable` (for *K*nitr t*able*) function and some stuff that is found in the `kableExtra` package.  With just a little work, it can be made to look pretty interesting.  
+
+Here I take the average of each measurement by species and then make a table output for it.  Again, I would hide the chunk in the final version.
+
+```{r}
+library( tidyverse )
+library(knitr)
+library(kableExtra)
+iris %>%
+  group_by(`Iris Species` = Species) %>%
+  summarize( ` Length` = mean(Sepal.Length),
+             ` Width` = mean(Sepal.Width), 
+             `Length` = mean( Petal.Length),
+             `Width` = mean( Petal.Width) ) %>%
+  kable('html') %>%
+  kable_styling( bootstrap_options = c("striped", "hover", "condensed"),
+                 full_width=FALSE) %>%
+  add_header_above(c("", "Sepal" = 2, "Petal" = 2))
+```
+
+
+
+
+
+
+
+
+
+
