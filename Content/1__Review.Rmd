@@ -1,0 +1,322 @@
+---
+title: "Review of Section 1"
+author: "Visualizations"
+date: "2/20/2020"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Review
+
+This is an overview of the content that was covered thus far in Data Literacy.
+
+
+## Base Skills
+
+
+### Getting Data
+
+You can make data directly, by entering it into R.
+
+```{r}
+x <- c( 1, 2, 6, 3, 2, 7, 4, 2, 6 )
+y <- c( 9, 3, 6, 2, 6, 3, 2, 6, 3 )
+```
+
+The fundamental object we keep data in is the `data.frame`.
+
+```{r}
+df <- data.frame( X = x, 
+                  Y = y )
+df
+```
+
+There is data that is already include in `R` for examples.  The `iris` data set is an example.
+
+```{r}
+summary(iris)
+head(iris)
+```
+
+
+We can also load data in from a local file.
+
+```{r}
+# I'm assuming that thre is is a folder called 'data' and within that folder there
+#  is a file called 'araptus.csv'  It was included with a lecture.
+
+araptus <- read.csv("data/araptus.csv")
+summary( araptus )
+```
+
+
+## Basic Plotting
+
+`R` comes with some basic plotting command that can make a wide array of graphics (though most seem to be from the 90's in terms of overall style).  Here are some examples.
+
+```{r}
+# histogram of suitability scores for observed araptus sampling locales
+hist( araptus$Suitability, 
+      xlab="Habitat Suitability", 
+      ylab="Frequency", 
+      breaks = 10,
+      main = "Araptus Habitat Suitibility")
+```
+
+```{r}
+# Scatter plot female and male beetle census numbers
+plot(  araptus$Males ~ araptus$Females, 
+       xlab ="Female Beetles",
+       ylab = "Male Beetles" )
+# add a x=y line to indicate where equal ratios of male and females would be
+#   the a= is the intercept, the b= is the slope, col is the color and lty is 
+#   the line type.
+abline( a=0, b=1,
+        col = "red", 
+        lty = 2)
+```
+
+You can customize the *p*lot *ch*aracters using `pch`.  There are 25 recognized characters.
+
+```{r}
+plot( 1:25,
+      1:25,
+      pch = 1:25 )
+```
+
+
+
+
+```{r}
+boxplot( iris$Sepal.Length ~ iris$Species, 
+         notch = TRUE, 
+         xlab = "Iris species",
+         ylab = "Sepal Length" )
+```
+
+```{r}
+# this is a barplot
+mean_petal_length <- c(  1.46, 4.26, 5.52 )
+barplot( mean_petal_length,
+         names.arg = c( "Iris setosa",
+                        "Iris versicolor",
+                        "Iris virginica"),
+         xlab = "Species",
+         ylab = "Average Petal Length (cm)")
+```
+
+You can even make bad dad jokes with these plots...
+
+```{r}
+pie(
+  c(280, 60, 20),
+  c('Sky', 'Sunny side of pyramid', 'Shady side of pyramid'),
+  col = c('#0292D8', '#F7EA39', '#C4B632'),
+  init.angle = -50, border = NA
+)
+```
+
+
+
+## GGPlot
+
+The `ggplot2` library allows you to overlay layers, geometries, transformations, and statistics onto more modern-looking graphical output.  At a base level, we need:
+
+ 1. To make a plot using `ggplot()`
+ 2. Define the data being used.
+ 3. Specify an `aes`ethic which lets the plot know which parts of the data you are going to use to plot or color components within the each layer.
+ 4. Add `geom`etric layers to the plots.
+ 5. Make labels, etc.
+
+Using the `airquality` data.
+
+```{r}
+data(airquality)
+summary( airquality )
+```
+
+we can look at univariate data distributions (e.g., a single variable)
+```{r, warning=FALSE, message=FALSE}
+library( ggplot2 )
+ggplot( airquality, aes( Solar.R) ) +
+  geom_histogram()
+```
+
+Or make plots of two variables such as scatter plots
+
+```{r}
+ggplot( airquality, aes( Temp, Wind ) ) +
+  geom_point() +
+  xlab("Temperature (F)") + 
+  ylab("Windspeed (MPH)")
+```
+
+even ones with labels.
+
+```{r}
+kite.days <- data.frame( Wind = c(20.7,20.1),
+                         Temp = c(72, 61),
+                         Labels = c("Best Day", "Next Best Day")
+)
+kite.days
+```
+
+(and showing how to use two different data.frame objects to plot on the same plot)
+
+```{r}
+library( ggrepel )
+ggplot( airquality, aes( Temp, Wind ) ) + 
+  geom_point() + 
+  geom_label_repel( aes(label = Labels), data = kite.days )
+```
+
+even with colors
+
+```{r}
+ggplot( airquality, aes(Temp, Wind, color=Month)) + 
+  geom_point() +
+  ylab("Windspeed") + 
+  xlab("Temperate (F)") 
+```
+
+
+or boxplots where the x-axis data is 'categorical'
+
+```{r}
+ggplot( airquality, aes(Month, Wind) ) + 
+  geom_boxplot( notch=TRUE)
+```
+
+
+
+## Rasters
+
+We can treat a raster just like any other object and use it in displaying geospatial content.
+
+```{r message=FALSE, warning=FALSE}
+library(raster)
+r <- raster("data/alt_22.tif")
+r
+```
+
+To do a variety of things such as defining an extent within the raster
+
+```{r}
+e <- extent( -116, -108, 22, 30)
+e
+```
+
+and cropping it (compare the extent of this one to the previous one).
+
+```{r}
+baja <- crop( r, e )
+baja
+```
+
+and plot
+
+```{r}
+plot( baja, 
+      xlab = "Longitude",
+      ylab = "Latitude", 
+      main = "Elevation for Baja California",
+      col = terrain.colors( 50 ) )
+```
+
+We can even break individual rasters up and make them `data.frame` objects so that we can use `ggplot` and all of its glory to plot them.
+
+```{r warning=FALSE, message=FALSE}
+library( magrittr)
+
+raster("data/alt_22.tif") %>%
+  crop( extent( -116, -108, 22, 30) ) %>%
+  rasterToPoints() %>%
+  data.frame() -> baja_df
+
+summary( baja_df )
+```
+
+and overlay points
+
+```{r}
+baja_df %>%
+  ggplot() + 
+  geom_raster( aes(x,y,fill=alt_22)  ) + 
+  coord_equal() + 
+  scale_fill_gradientn( name="Elevation (m)", 
+                        colours = terrain.colors(100)) + 
+  theme_bw() + 
+  xlab("Longitude") + ylab("Latitude") +
+  geom_point( aes(x=Longitude,y=Latitude, size=Suitability), 
+              data = araptus, 
+              col = "red",
+              alpha = 0.4)
+```
+
+We can `extract` data from a raster for an analysis by defining the points.
+
+```{r}
+pts <- SpatialPoints( cbind( araptus$Longitude, araptus$Latitude ) )
+site_elev <- extract( baja, pts)
+site_elev
+```
+
+for subsequent analysis
+
+```{r}
+araptus$Elevation <- site_elev
+ggplot( araptus, aes( Latitude, Elevation ) ) + 
+  geom_line() + 
+  theme_bw()
+```
+
+
+## Leaflet
+
+We can use the leaflet library to create interactive maps.  Thus far, we've worked on making individual maps with points and markers.
+
+```{r fig.cap="*Figure 1:* The spatial distribution of sample locations for the Sonoran Desert bark beetle (*Araptus attenuatus*).",  warning=FALSE, message=FALSE}
+library(leaflet) 
+
+leaflet(data = araptus) %>%
+  addProviderTiles(provider="Stamen.TerrainBackground") %>%
+  addCircleMarkers(weight=1, fill=TRUE, color="#fff") %>%
+  addLabelOnlyMarkers(label=~as.character(Site), 
+                      labelOptions = labelOptions(noHide=TRUE,
+                                                  direction='center',
+                                                  textOnly = TRUE))
+```
+
+We can even get more fancy and overlay things like charts
+
+```{r}
+library(leaflet)
+library(leaflet.minicharts)
+
+leaflet() %>%
+  addProviderTiles( providers$Esri.WorldTopoMap) %>%
+  addMinicharts( 
+    araptus$Longitude, araptus$Latitude,
+    type = "pie",
+    chartdata = araptus[, c("Males","Females")],
+    width = araptus$Suitability*30
+    )
+```
+
+and layers provided by *W*eb *M*apping *S*ervices such as weather layers.
+
+```{r}
+leaflet() %>% 
+  setView( lng=-86.0490, 35.1495, zoom = 5 ) %>% 
+  addProviderTiles( providers$OpenTopoMap ) %>% 
+  addWMSTiles(
+    "http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi",
+    layers = "nexrad-n0r-900913",
+    options = c(WMSTileOptions(format = "image/png", transparent = TRUE),
+                providerTileOptions( opacity = 0.45) ),
+    attribution = "Weather data © 2012 IEM Nexrad"
+  )
+```
