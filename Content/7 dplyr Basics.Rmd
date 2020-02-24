@@ -1,0 +1,302 @@
+---
+title: "7 dplyr Basics"
+output: html_notebook
+---
+
+For this, we need to get a relatively large data file so we can start playing with it.  I'm going to use some data that comes with the `nycflights13` library.  If you do not have it, you will need to install it.
+
+```{r eval=FALSE}
+install.packages("nycflights13")
+```
+
+and then load it in and we can look at the `flights` data.frame.
+
+```{r}
+library(nycflights13)
+data(flights)  # this loads the data from the package
+summary( flights )
+```
+
+These data consist of `r formatC(nrow(flights), big.mark=",")` records for `r ncol(flights)` variables (named *`r paste(names(flights), collapse=", ")`*).  That is a *reasonable* sized dataset to work with.  
+
+See `?flights` for a description of the data contained within.
+
+## Overview of `dplyr`
+
+The `dplyr` library is one of the libraries included in the `tidyverse` constellation of libraries.  The main focus for `dplyr` is to allow you to manipulate data frames in the following ways:  
+
+- Pick certain rows of data based upon their values (use `filter()`)  
+- Choose particular subsets of columns or rearrange them (use `select()`)  
+- Create new columns of data (use `mutate()`)
+- Sort data on one or more columns (use `arrange()`)
+- Group data based upon specific columns (use `group_by()`)  
+- Summarize columns of data or composites (use `summarize()`)
+
+
+Using the piping we've been introduced to thus far via `%>%` we can chain these kinds of operations together into single lines of code that perform rather complicted patterns of communication and analysis.  
+
+Let's load the library in and start playing around a bit.
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+```
+
+
+## Filter
+
+The `filter()` function allows us to select particular rows from the data set.  To specify the criteria of the filter, we use *logical* operations (things like `>`, `>=`,  `==`, `<=`, `<`, `is.na()`, `is.null()`, etc.).  
+
+Here are all the flights that left a NYC airport and went to Anchorage Alaska. 
+
+```{r}
+flights %>%
+  filter( dest == "ANC" )
+```
+
+Here is a look at the number of flights whose flight time (measured as minutes in the `air_time` variable) was more than 10 hours in length.
+
+```{r}
+flights %>%
+  filter( air_time > (60 * 10) ) %>%
+  nrow() 
+```
+
+We can do compound expressions for `filter()` (and the rest) by adding addition criteria.  Here I sort by both month (January) and carrier (AS for *Alaska Airlines*) as either calling `filter()` twice (e.g., the output of one become the input of another)
+
+```{r}
+flights %>%
+  filter( month == 1 ) %>%
+  filter( carrier == "AS" )
+```
+
+or as a single call to filter with the statements separated by a comma (this time I search for *Mesa Airlines* in May).  Both approaches give the same results as they are conducting an **and** operation (e.g., the conditions for both *must* be `TRUE`)
+
+```{r}
+flights %>%
+  filter( month == 5, 
+          carrier == "YV" )
+```
+
+### Complex Filters
+
+We can combine additional logical operators in the filter to make more complex filters.  The code below does the following filter (if reading it out loud it would be)
+1. from all the flights, 
+2. find ones that are in January or Feburary, 
+3. whose destination is Seattle or Portland (I use the OR operator `|` for both destinations here), 
+4. and airlines that were neither *Alaska* nor *United* (I use the negation `!` and set  `%in%` operators for that one).
+
+```{r}
+flights %>%
+  filter( month < 2, 
+          dest == "SEA" | dest == "PDX",
+          !(carrier %in% c("AS","UA")) )
+```
+
+
+
+## Selecting Subsets of Columns
+
+In additiont to filtering rows, we can select subsets of columns.  We do this, surprisingly, with the function `select()`.  To select individual columns, give their variable names (not quoted).
+
+```{r}
+flights %>%
+  select( year, month, day, dest, air_time ) 
+```
+
+
+To select *NOT* a column, use the name preceeded by a negative sign (e.g., a dash) and it will omit that column.
+
+```{r}
+flights %>%
+  select( -year, -month, -day ) 
+```
+
+You can also use the `select()` to re-order the columns, and this is especially helpful if you pair this with the `everything()` function that give (drum roll please), everything else (way helpful if you have a lot of columns of data and do not want to type them all out).
+
+```{r}
+flights %>%
+  select( dep_time, air_time, carrier, everything() )
+```
+
+You can also use the select to rename the columns as you grab them.  This is really nice for setting up your variable names when you do something like making a new plot.  Grab the data, pipe it through the select and give it names that will be approprite for axis labels and then pass it on to `ggplot` and you won't have to do the `+ xlab() + ylab()` fixes for odd variable names.
+
+```{r}
+flights %>%
+  select( Airline = carrier, 
+          Departure = sched_dep_time,
+          Arrival = sched_arr_time,
+          Duration = air_time )
+```
+
+If you want to keep all the data and just rename a couple of columns, use the `rename()` function and it will change them in place.
+
+```{r}
+flights %>%
+  rename(Departure = dep_time)
+```
+
+
+
+
+
+## Creating New Variables with `mutate()`
+
+In the process of piping the data, we can add to the `data.frame` by using `mutate()`.  Here is an example where I take the *month*, *day*, and *year* columns and paste them togehter using the slash (`/`) character and then turn it into a *real* date object.  I then select the date, destination, flight time (notice how I use the back-tick quote to make a name that has a space in it), and Delay.
+
+
+```{r}
+library( lubridate )
+flights %>%
+  mutate( Date = parse_date_time( paste( month, day, year, sep="/"),  
+                                  orders="%m/%d/%Y") ) %>%
+  select( Date, 
+          Destination = dest,
+          `Flight Time` = air_time, 
+          Delay = arr_delay) 
+```
+
+Just like filter, I can chain these together to do multiple mutations^[Careful, if you do a mutation that makes a new column, you cannot refer to this new column in the same mutation, you will have to make a subsequent mutation to reference the newly created column].  Here I do the same as above but also make the destination a categorical `factor` variable.
+
+```{r}
+flights %>%
+  mutate( Date = parse_date_time( paste( month, day, year, sep="/"),  
+                                  orders="%m/%d/%Y") ) %>%
+  mutate( Destination = factor( dest ) ) %>%
+  select( Date, 
+          Destination,
+          `Flight Time` = air_time, 
+          Delay = arr_delay) %>%
+  summary()
+```
+
+
+## Sorting 
+
+We can arrange the data using `arrange()` in either increasing or decreasing orders.  Here are the shortest flights from NYC.
+
+```{r}
+flights %>%
+  select( Destination = dest, 
+          Duration = air_time ) %>%
+  arrange( Duration )
+```
+
+and the longest flights (converted to length in hours).  To switch from largest to smallest, you can use `desc(Duration)` or just put a negative symbol in front of the variable name.
+
+```{r}
+flights %>%
+  mutate( Duration = air_time / 60.0 ) %>%
+  select( Destination = dest, 
+          Duration ) %>%
+  arrange( -Duration ) 
+```
+
+
+## Summaries 
+
+So all of the stuff thus far has been selecting rows and columns of data and changing entire columns, now we start talking about summarizing the data we have manipulated.  
+
+```{r}
+flights %>%
+  mutate( `Total Delay` = dep_delay + arr_delay ) %>%
+  summarize( `Departure Delay` = mean(dep_delay),
+             `Arrival Delay` = mean( arr_delay),
+             `Total Delay` = mean( `Total Delay`) )
+```
+
+OK, notice one thing, it is all `NA` values! That is because there are missing data and *by default* `R` will return a `NA` for an operation if any of the data are `NA`.  This is a "good thing"^&copy;^ as it alerts you, the researcher, that there is missing data and you will have to deal with it to get a usable answer.  There are two ways to try this, we could filter out all the missing data first using `filter()`
+
+
+```{r}
+flights %>%
+  mutate( `Total Delay` = dep_delay + arr_delay ) %>%
+  filter( !is.na(`Total Delay`) ) %>%
+  summarize( `Departure Delay` = mean(dep_delay),
+             `Arrival Delay` = mean( arr_delay),
+             `Total Delay` = mean( `Total Delay`) )
+```
+
+**OR** we could tell the `mean()` function to ignore missing stuff.
+
+```{r}
+flights %>%
+  mutate( `Total Delay` = dep_delay + arr_delay ) %>%
+  summarize( `Departure Delay` = mean(dep_delay, na.rm = TRUE),
+             `Arrival Delay` = mean( arr_delay, na.rm = TRUE),
+             `Total Delay` = mean( `Total Delay`, na.rm = TRUE ) )
+```
+
+
+We can also `group_by()` to get more rows in our output summary.  Following from the previous example, if we want the data on worst arrival delays by destination, we can
+
+```{r}
+flights %>%
+  group_by( Destination = dest ) %>%
+  summarize( Delay = mean( arr_delay, na.rm=TRUE ),
+             Distance = mean( distance, na.rm=TRUE),
+             `Late Flights` = length( arr_delay > 0 ) ) %>%
+  arrange( -Delay ) 
+```
+
+Which shows that the following are the worst Columbia Metropolitan Airport in South Carolina had the longest average delay of all destinations, averaging about 41 minutes.  
+
+The object that pops out the end of the `summarize()` function is another `data.frame` object, so we can actually just pipe this into a `ggplot` object.
+
+```{r message=FALSE, warning=FALSE}
+library( ggplot2 ) 
+library( ggrepel )
+
+
+flights %>%
+  group_by( Destination = dest ) %>%
+  summarize( Delay = mean( arr_delay, na.rm=TRUE ),
+             Distance = mean( distance, na.rm=TRUE),
+             `Daily Late Flights` = length( arr_delay > 0 )/365 ) %>%
+  ggplot( aes(Distance, Delay) )  + 
+  stat_smooth( se = FALSE, 
+               col="red", 
+               linetype = 2) +
+  geom_point( aes(size = `Daily Late Flights`), 
+              alpha=0.75) + 
+  geom_text_repel()
+  theme_bw() 
+
+```
+
+Combining these with the `knitr` and `knitrExtras` packages, we can easily make tables in from our data that can be inserted into the document.  Here is a version that you can 
+
+```{r}
+library(knitr)
+library(kableExtra)
+
+flights %>%
+  group_by( Destination = dest ) %>%
+  summarize( Delay = mean( arr_delay, na.rm=TRUE ),
+             Distance = mean( distance, na.rm=TRUE),
+             `Daily Late Flights` = length( arr_delay > 0 )/365 ) %>%
+  arrange( -Delay ) %>%
+  head() %>%
+  kable( 'html' ) %>%
+  kable_styling( bootstrap_options = "striped", 
+                 full_width = FALSE ) 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

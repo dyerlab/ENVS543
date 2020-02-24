@@ -12,7 +12,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-source("../../../options.R")
+source("../options.R")
 ```
 
 ## Models {.build}
