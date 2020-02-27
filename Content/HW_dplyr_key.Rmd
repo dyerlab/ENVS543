@@ -1,0 +1,116 @@
+---
+title: "Homework for `dplyr`"
+author: "YOUR NAME HERE"
+output: html_notebook
+---
+
+This is a short set of homework for using the `dplyr` library.  It is going to use the `flight` data, we played with in the lecture content.
+
+```{r}
+library(tidyverse)
+library(nycflights13)
+data(flights)
+```
+
+
+1. What is the average delay for each month during 2013 of flights from?  Make the ouptut into a nicely formated table and use month names.
+
+```{r}
+library( lubridate)
+
+flights %>%
+  filter( dest == "RIC" ) %>%
+  mutate( Delay = arr_delay + dep_delay ) %>%
+  mutate( Date = parse_date_time( paste(month,day,year,sep="/"), 
+                                  orders="%m/%d/%Y") ) %>%
+  mutate( Month = months(Date)) %>%
+  select( Month, Delay) %>%
+  group_by( Month ) %>%
+  summarize( `Flight Delay` = mean( Delay , na.rm = TRUE) ) %>% 
+  knitr::kable('html') %>%
+  kableExtra::kable_styling( bootstrap_options = c( "striped", 
+                                                    "hover",
+                                                    "condensed"),
+                             full_width=FALSE)
+```
+
+2. Which day of the week are you more likely to *arrive on time* to Phoenix Arizona?  Make the output into a bar plot.
+
+```{r}
+flights %>%
+  filter( dest == "PHX" ) %>%
+  mutate( Arrival = arr_delay ) %>%
+  mutate( Date = parse_date_time( paste(month,day,year,sep="/"), 
+                                  orders="%m/%d/%Y") ) %>%
+  mutate( Weekday = factor( weekdays(Date), 
+                            ordered=TRUE,
+                            levels = c("Monday",
+                                      "Tuesday",
+                                      "Wednesday",
+                                      "Thursday",
+                                      "Friday",
+                                      "Saturday",
+                                      "Sunday") ) ) %>%
+  select( Weekday, Arrival ) %>%
+  group_by( Weekday ) %>%
+  summarize( Arrival = mean(Arrival, na.rm=TRUE) ) %>%
+  ggplot( aes(x=Weekday, y= Arrival) ) + 
+  geom_col() + ylab("Average Arrival Delay") + 
+  theme_bw()
+```
+
+3. Which airlines have, on average, arrival times that are earlier than scheduled?
+
+
+```{r}
+flights %>%
+  select( carrier, arr_delay ) %>%
+  group_by( `Airline` = carrier ) %>%
+  summarize( `Average Delay` = mean( arr_delay, na.rm=TRUE ) ) %>%
+  arrange( `Average Delay` ) %>%
+  filter( `Average Delay` <=  0 ) %>%
+  knitr::kable('html') %>%
+  kableExtra::kable_styling( bootstrap_options = c( "striped", 
+                                                    "hover",
+                                                    "condensed"),
+                             full_width=FALSE)
+```
+
+4. What are the five airports that have the shortest flight times?  Give the results as a table.
+
+
+```{r}
+flights %>%
+  arrange( air_time ) %>%
+  group_by( dest ) %>%
+  summarize( `Flight Time` = min( air_time, na.rm=TRUE ) ) %>%
+  select( `Flight Time`, 
+          `Destination` = dest) %>%
+  arrange( `Flight Time` ) %>%
+  head( n = 5 ) %>%
+  knitr::kable('html') %>%
+  kableExtra::kable_styling( bootstrap_options = c( "striped", 
+                                                    "hover",
+                                                    "condensed"),
+                             full_width=FALSE)
+```
+
+5. Is there a correlation between flight distance and total delay?  Use the function `cor.test( X, Y )`.  Interpret the output.
+
+```{r}
+flights %>%
+  mutate( Delay = arr_delay + dep_delay ) %>%
+  select( Distance = distance, 
+          Delay ) -> tmp
+
+cor.test( tmp$Distance, tmp$Delay )
+```
+
+```{r message=FALSE, warning=FALSE }
+ggplot( tmp, aes(Distance, Delay) ) + 
+  geom_point(  )  + 
+  stat_smooth( se=FALSE )
+```
+
+
+

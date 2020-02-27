@@ -1,0 +1,69 @@
+---
+title: "ENVS543: Exam 1"
+author: "YOUR NAME"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set( echo=TRUE )
+```
+
+## Results
+
+We sampled {{INSERT DATA}} *Araptus attenuatus* individuals from {{INSERT DATA}} different sampling locales  (Figure 1).  At each sampling location, a GPS coordiante was obtained and 10 plants were surveyed for beetles by manually breaking apart senescing stems and physically picking out the individuals. All samples were preserved in ethanol and returned to the laboratory at Virginia Commonwealth University for subsequent demographic and genetic analyses.  
+
+```{r Figure1}
+# insert map here with locales 
+```
+
+Using light microscopy, the sex of each individual was determined---male individuals have a bald frons whereas females are characterized by easily visible white hairs.  The number of male and feamales beetles as well as the sex ratio, defined as {{YOU DEFINE HOW THE SEX RATIO IS DETERMINED (e.g., Males/Females or Females/Males)}}, are represented at the level of the sampling locale and are showin in Table 1.
+
+
+```{r Table1}
+# insert table 1.  It should have a column for Site, Males, Females, and Sex Ratio.
+```
+
+The distriubtion of sex ratios (Figure 2) shows {{DESCRIBE WHAT IT SHOWS - IS IT EVEN, SKEWED, WHAT?}}
+
+```{r Figure2}
+# insert a histogram of the estimated Sex Ratios
+```
+
+To better understand the variation in sex ratio observed, we estimated the correlation between sex ratio and the several bioclimatic variables (Table 2; data from [WorldClim](http://worldclim.org/bioclim)).  
+
+```{r Table 2}
+# insert table 2 that has the name of the GeoTIFF's (alt, bio1, etc.) and a description of the data contained within it.  
+```
+
+For each of the input data sets, we extracted the value at each sampling locale and tested association between these bioclimatic variables and the estimated sex ratio using the Pearson Product Moment Correlation Statistic.
+
+```{r extract}
+# extrace the point data for each raster and put it onto the araptus data.frame.  You should have 6 additional columns of data on the araptus data.frame you input above.
+```
+
+```{r Correlations}
+# To run a correlelation test like in the markdown lecture run
+# cor.elevation <- cor.test( Suitability, elevationData )
+# cor.meantemp <- cor.test( Suitability, meanTemData)
+# etc.
+
+
+```
+
+Overall, feature {{WHICH ONE}} had the highest correlation (r={{INSERT VALUE}}, df={{INSERT VALUE}}, P = {{INSERT VALUE}}), whereas {{WHICH ONE}} had the lowest (r={{INSERT VALUE}}, df={{INSERT VALUE}}, P = {{INSERT VALUE}}), with the remaining being intermediate (Table 3).
+
+```{r Table 3}
+# create table with columns for BioClimatic Variable Name and correlation statistic (r) and probability (P) representing the correlations with sex ratio.
+```
+
+We also examined the relationship between habitat suitability, as measured using a MAXENT habitat suitability model and sex ratio (Figure 3), which showed {{INSERT YOUR INTERPRETATION OF ANY PATTERNS HERE}}.
+
+```{r Figure 3}
+# Place a figure here where sex ratio is a function of habitat suitability for interpretation.  Your inferences may be helped by adding + stat_smooth() to the plot which will overlay (or underlay) a trendline for you.
+```
+
+
+
+
+
+

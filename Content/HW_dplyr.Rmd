@@ -1,0 +1,24 @@
+---
+title: "Homework for `dplyr`"
+author: "YOUR NAME HERE"
+output: html_notebook
+---
+
+This is a short set of homework for using the `dplyr` library.  It is going to use the `flight` data, we played with in the lecture content.
+
+```{r}
+library(tidyverse)
+library(nycflights13)
+data(flights)
+```
+
+1. What is the average delay for each month during 2013 of flights from?  Make the ouptut into a nicely formated table and use month names.
+
+2. Which day of the week are you more likely to *arrive on time* to Phoenix Arizona?  Make the output into a bar plot.
+
+3. Which airlines have, on average, arrival times that are earlier than scheduled?
+
+4. What are the five airports that have the shortest flight times?  Give the results as a table.
+
+5. Is there a correlation between flight distance and total delay?  Use the function `cor.test( X, Y )`.  Interpret the output.
+

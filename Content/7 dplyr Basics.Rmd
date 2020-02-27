@@ -240,7 +240,7 @@ flights %>%
 
 Which shows that the following are the worst Columbia Metropolitan Airport in South Carolina had the longest average delay of all destinations, averaging about 41 minutes.  
 
-The object that pops out the end of the `summarize()` function is another `data.frame` object, so we can actually just pipe this into a `ggplot` object.
+The object that pops out the end of the `summarize()` function is another `data.frame` object, so we can actually just pipe this into a `ggplot` object.  Here are the destination cities whose late arrival averages over the entire year exceeds 20 minutes.
 
 ```{r message=FALSE, warning=FALSE}
 library( ggplot2 ) 
@@ -252,13 +252,14 @@ flights %>%
   summarize( Delay = mean( arr_delay, na.rm=TRUE ),
              Distance = mean( distance, na.rm=TRUE),
              `Daily Late Flights` = length( arr_delay > 0 )/365 ) %>%
+  mutate( Label = ifelse( Delay > 20, Destination, NA ) ) %>%
   ggplot( aes(Distance, Delay) )  + 
   stat_smooth( se = FALSE, 
                col="red", 
                linetype = 2) +
   geom_point( aes(size = `Daily Late Flights`), 
               alpha=0.75) + 
-  geom_text_repel()
+  geom_label_repel( aes(label=Label) ) + 
   theme_bw() 
 
 ```
