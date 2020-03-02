@@ -1,0 +1,237 @@
+---
+title: "8 Functions"
+output: html_notebook
+---
+
+In `R`, functions are a way for us to *encapsulate* chuncks of data.  Functions are generally written to help out with common tasks.  If you find yourself rewriting a bit of code, you should consider putting it into a function.  What the do is dependent upon you.  You can have functions that:
+
+1. Take no data and only do something if necessary (e.g., check that some instrument is working and if not, give me a text message).
+1. Take no data and do some task returning you the result (e.g., go grab these data and format it ).  
+1. Take some data and return you a result (e.g., validate or translate these data ).  
+1. Take some data and return you nothing (e.g., take these data and make my way cool plot).  
+1. It would be odd to have a function that takes no data and does nothing unless you were writing code whose sole purpose is to waste computer resources (a virus perhaps...).
+
+In general, making functions allow us to make type less often (and make fewer mistakes) and generally helps us be more productive.  It is only a short step from making a few functions to creating your own package that has a suite of functions that help you do your own work most efficiently.
+
+## Case Study - Dates
+
+Let's take an example of some code that we've been running over and over again, turning columns of `month`, `day`, and `year` into a date object as an example.  To do this we must do the following:  
+ 
+ 1. Take the columns of data and paste them together to make a new column that has the 'character representation' of the date object.  
+ 2. Load in the library `lubridate` to get the appropriate functions.  
+ 3. Set up a `orders` string to let the `parse_data_time()` function know how the data are in the string.  
+ 4. Convert the column into a real date object.
+
+Let's us the New York city Flight Data from 2013 as an example.
+
+```{r}
+library( nycflights13)
+data(flights)
+summary(flights)
+```
+ 
+The code for translating this is as follows.  First, we make a string representation (I'll use the slash '/' to separate entities).
+
+```{r}
+DateString <- paste( flights$month,
+                     flights$day,
+                     flights$year, sep="/")
+head(DateString)
+```
+
+Then we define the way we ordered the date entries using the appropriate `%x` representations for month, day, and four digit year.
+
+```{r}
+orders <- "%m/%d/%Y"
+```
+
+Load in the library
+
+```{r}
+library( lubridate )
+```
+
+Then convert it.
+
+```{r}
+Date <- parse_date_time( DateString, orders = orders )
+summary( Date )
+```
+
+To put it all together into a single function we must *wrap* it within a chunk of code and make a name for it.  The general format for this is:
+
+```
+myCollFunctionName <- function( Argument1, Argument2, ..., ArgumentN  ) {
+
+  # all your code goes here.
+
+}
+```
+
+So in our case, we could do the following:
+
+```{r}
+makeMyDate <- function( month, day, year ) {
+  
+  library( lubridate )  # I like to put all my libraries at the top
+  
+  DateString <- paste( month,
+                       day,
+                       year,
+                       sep= "/")
+  orders <- "%m/%d/%Y"
+  
+  Date <- parse_date_time( DateString, 
+                           orders = orders )
+  
+  # It is important to have this return() function.  This passes the Date object
+  #  back from the function to the code that called the function.  
+  return( Date )
+}
+```
+
+Once you have `sourced` that code, you can call it as:
+
+```{r}
+dates <- makeMyDate( flights$month, flights$day, flights$year )
+summary( dates )
+```
+
+## Map, Reduce, & Filter
+
+Functions are quite handy to use in your every day programming.  Let's consider a simple case, where I have a function that does a single operation on some data.  Let's say it squares the data we give to it.
+
+```{r}
+f <- function( x ) {
+  return( x^2 )
+}
+```
+
+We can call this function with a single data type as:
+
+```{r}
+f( 2 )
+```
+
+Or with a bunch of data, say
+
+```{r}
+x <- c(1,2,5,4 )
+f(x)
+```
+
+### Maps
+
+Essentially, we are passing a vector of data to a function that is iterating over all of it and doing some operation.  This 
+
+![Map Function Schematic](https://raw.githubusercontent.com/dyerlab/ENVS543/master/Content/Map.png)
+
+Another way of thinking about this, and one that may be more helpful is that we are *Map*ping the function `f()` to each element of the vector as depicted below.  
+
+![Map function schematic as vector](https://raw.githubusercontent.com/dyerlab/ENVS543/master/Content/Map2.png)
+
+This way of thinking about the data is a bit different but defines what is called *Functional Programming*, a kind of programming where we focus on developing and deploying functions *onto* data instead of sending data *into* functions.  This is a very nice way of thinking about it.  In R, we can do this as:
+
+
+```{r}
+Map( f, x  )
+```
+
+This returns a `list` of responses.  To get it to give a vector we can:
+
+```{r}
+unlist( Map( f, x )  )
+```
+
+We will come back to lists in a week or so.
+
+### Filters
+
+Another operation we may do like this is to filter data.  Here we define a function that returns `TRUE` and `FALSE` values for a vector indicating the value passed is even (`TRUE` because the modulus operator returns the 'remainder' of division) or odd (when value / 2 has remainder != 0).
+
+```{r}
+g <- function(x) {
+  return( x %% 2 == 0 )
+}
+```
+
+
+Which looks like: 
+
+![Filter even data](https://raw.githubusercontent.com/dyerlab/ENVS543/master/Content/Filter.png)
+
+And when we apply it to some data, we get:
+
+```{r}
+g(2)
+```
+
+for even and for odd values we get:
+
+```{r}
+g(3)
+```
+
+We can `Filter()` vectors of data based upon this function as:
+
+```{r}
+Filter( g, x )
+```
+
+
+In normal, `R` we could do this using the `g()` function to generate `TRUE` and `FALSE` indices based upon the values in `x` and then pass them to `x` using the square brackets.  
+
+```{r}
+x[ g(x) ]
+```
+
+It does the same thing but is *much less clear* what is going on here.  The `Filter()` is blantantly saying, 
+
+> HELLO, I'm filtering over here!
+
+
+### Reduce
+
+To round this out, we also have a `Reduce()` function that combines data using some operation.  This can be a simple operation like `+` which means Add them all together, or something more involved that is defined as a larger function.  
+
+Let's start easy.  The following code sasy, *take all the values in `x` and add them together*.
+
+```{r}
+Reduce( '+', x )
+```
+
+We can also multiply them.
+
+```{r}
+Reduce( '*', x )
+```
+
+Or we can define a function.  Here we need to give the function two arguments because the function is *walking down the vector, keeping and accumulating information as it goes along* so we need the value for the previous state as well as for the thing we do with the next one.  
+
+As an example, here is a function that adds the square of the values together.
+
+```{r}
+h <- function( prev, new ) { 
+  return( new*new + prev )
+}
+
+Reduce( h, x )
+```
+
+
+We can even tell `Reduce()` to start with some value other than 0.
+
+```{r}
+Reduce( h, x, init = 200)
+```
+
+
+
+
+
+
+
+
+
+
+
